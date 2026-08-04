@@ -1,0 +1,33 @@
+# Web framework
+fastapi==0.115.6
+uvicorn[standard]==0.34.0
+python-multipart==0.0.20
+pydantic==2.10.4
+pydantic-settings==2.7.1
+
+# Auth (verify Supabase JWTs)
+pyjwt[crypto]==2.10.1
+
+# Supabase (service_role access to biometric tables + storage)
+supabase==2.15.0
+
+# Face recognition — unchanged from the original pipeline
+numpy==1.26.4
+scikit-learn==1.5.2
+dlib-bin==19.24.6
+git+https://github.com/ageitgey/face_recognition_models
+pillow==11.0.0
+
+# face_recognition_models still imports pkg_resources, which setuptools
+# dropped in newer releases — pin an older setuptools that still has it.
+setuptools<70.0.0
+
+# Voice recognition — unchanged from the original pipeline
+librosa==0.10.2.post1
+torch==2.13.0
+# webrtcvad's C extension has no Windows wheel on PyPI and needs MSVC build
+# tools to compile from source; webrtcvad-wheels ships prebuilt wheels under
+# the same `webrtcvad` import name, so resemblyzer works unmodified.
+# NOTE: resemblyzer itself is installed separately with --no-deps (see
+# README) so pip's resolver doesn't also try to pull plain `webrtcvad`.
+webrtcvad-wheels==2.0.11.post1
