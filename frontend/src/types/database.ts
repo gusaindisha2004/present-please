@@ -1,6 +1,6 @@
-// Hand-written to match supabase/schema.sql. Once the schema is applied to
-// the real project, this can be regenerated with the Supabase CLI:
-//   supabase gen types typescript --project-id <ref> > src/types/database.ts
+// Row shapes matching supabase/schema.sql, used for manual annotations at
+// each Supabase query call site (see src/lib/supabase.ts for why we don't
+// pass these through createClient<Database>()).
 
 export type Role = "teacher" | "student"
 export type AttendanceMethod = "face" | "voice" | "manual"
@@ -48,24 +48,4 @@ export interface AttendanceRecord {
   is_present: boolean
   detected_by: AttendanceMethod | null
   confidence: number | null
-}
-
-export interface Database {
-  public: {
-    Tables: {
-      profiles: { Row: Profile; Insert: Partial<Profile>; Update: Partial<Profile> }
-      subjects: { Row: Subject; Insert: Partial<Subject>; Update: Partial<Subject> }
-      enrollments: { Row: Enrollment; Insert: Partial<Enrollment>; Update: Partial<Enrollment> }
-      attendance_sessions: {
-        Row: AttendanceSession
-        Insert: Partial<AttendanceSession>
-        Update: Partial<AttendanceSession>
-      }
-      attendance_records: {
-        Row: AttendanceRecord
-        Insert: Partial<AttendanceRecord>
-        Update: Partial<AttendanceRecord>
-      }
-    }
-  }
 }
