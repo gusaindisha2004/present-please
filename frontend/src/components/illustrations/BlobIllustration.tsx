@@ -1,9 +1,12 @@
 import type { LucideIcon } from "lucide-react"
+import { CheckCircle2 } from "lucide-react"
 
-// A small, tasteful stand-in for a hand-drawn illustration: an organic
-// "blob" shape (pure CSS border-radius trick) with a Lucide icon centered
-// in it, plus a couple of floating accent dots. Kept deliberately simple —
-// no external image assets to source, license, or load.
+import { cn } from "@/lib/utils"
+
+// A small, tasteful stand-in for a hand-drawn illustration, built from
+// flat layered shapes (no external image assets to source or license):
+// a soft gradient "blob" (CSS border-radius trick), a floating card
+// holding the main icon, a dashed accent ring, and one drifting badge.
 export function BlobIllustration({
   icon: Icon,
   className,
@@ -12,16 +15,27 @@ export function BlobIllustration({
   className?: string
 }) {
   return (
-    <div className={`relative flex items-center justify-center ${className ?? ""}`}>
+    <div className={cn("relative flex size-56 items-center justify-center", className)}>
       <div
-        className="bg-accent flex size-56 items-center justify-center shadow-sm"
+        className="from-primary/15 to-brand-to/25 ring-primary/10 shadow-primary/5 absolute inset-0 bg-linear-to-br shadow-xl ring-1"
         style={{ borderRadius: "42% 58% 70% 30% / 45% 45% 55% 55%" }}
-      >
-        <Icon className="text-primary size-20" strokeWidth={1.5} />
+      />
+
+      <div
+        aria-hidden="true"
+        className="border-primary/20 absolute bottom-4 left-2 size-16 rounded-full border-2 border-dashed"
+      />
+
+      <div className="bg-card ring-foreground/5 relative flex size-24 items-center justify-center rounded-2xl shadow-lg ring-1">
+        <Icon className="text-primary size-10" strokeWidth={1.6} />
       </div>
-      <div className="bg-primary/15 absolute -top-2 right-6 size-10 rounded-full" />
-      <div className="bg-warning/20 absolute bottom-2 left-2 size-6 rounded-full" />
-      <div className="bg-success/20 absolute top-10 -left-4 size-5 rounded-full" />
+
+      <div className="bg-success/15 ring-success/20 text-success animate-float-slow absolute top-2 right-8 flex size-9 items-center justify-center rounded-full shadow-sm ring-1">
+        <CheckCircle2 className="size-4" strokeWidth={2} />
+      </div>
+
+      <div className="bg-warning/70 absolute top-14 left-0 size-3 rounded-full" />
+      <div className="bg-brand-to/50 absolute right-0 bottom-10 size-4 rounded-full" />
     </div>
   )
 }

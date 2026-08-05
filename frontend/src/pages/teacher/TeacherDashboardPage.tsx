@@ -1,7 +1,14 @@
-import { Presentation } from "lucide-react"
+import { Presentation, BookOpen, ScanFace, ClipboardList } from "lucide-react"
 
 import { useAuth } from "@/context/AuthContext"
 import { BlobIllustration } from "@/components/illustrations/BlobIllustration"
+import { Badge } from "@/components/ui/badge"
+
+const UPCOMING = [
+  { icon: BookOpen, label: "Subjects" },
+  { icon: ScanFace, label: "Take attendance" },
+  { icon: ClipboardList, label: "Reports" },
+]
 
 export default function TeacherDashboardPage() {
   const { profile } = useAuth()
@@ -17,6 +24,14 @@ export default function TeacherDashboardPage() {
           Your subjects, attendance tools, and reports are coming together
           in the next phases of this build.
         </p>
+      </div>
+      <div className="flex flex-wrap items-center justify-center gap-2">
+        {UPCOMING.map(({ icon: Icon, label }) => (
+          <Badge key={label} variant="outline" className="text-muted-foreground">
+            <Icon className="size-3" />
+            {label}
+          </Badge>
+        ))}
       </div>
     </div>
   )

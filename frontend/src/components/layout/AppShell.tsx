@@ -1,7 +1,8 @@
 import type { ReactNode } from "react"
-import { LayoutDashboard, LogOut, GraduationCap } from "lucide-react"
+import { LayoutDashboard, LogOut } from "lucide-react"
 
 import { useAuth } from "@/context/AuthContext"
+import { Logo } from "@/components/branding/Logo"
 import {
   Sidebar,
   SidebarContent,
@@ -50,11 +51,11 @@ export function AppShell({ children }: { children: ReactNode }) {
     <SidebarProvider>
       <Sidebar collapsible="icon">
         <SidebarHeader>
-          <div className="flex items-center gap-2 px-2 py-1.5">
-            <GraduationCap className="text-primary size-5 shrink-0" />
-            <span className="truncate font-semibold tracking-tight group-data-[collapsible=icon]:hidden">
-              Present Please!
-            </span>
+          <div className="px-2 py-1.5">
+            <Logo
+              markClassName="size-6 rounded-md"
+              wordmarkClassName="text-base group-data-[collapsible=icon]:hidden"
+            />
           </div>
         </SidebarHeader>
 
@@ -78,7 +79,7 @@ export function AppShell({ children }: { children: ReactNode }) {
             <DropdownMenuTrigger asChild>
               <SidebarMenuButton size="lg">
                 <Avatar className="size-6">
-                  <AvatarFallback className="bg-primary text-primary-foreground text-xs">
+                  <AvatarFallback className="bg-brand-gradient text-xs text-white">
                     {profile ? initials(profile.full_name || profile.email) : "?"}
                   </AvatarFallback>
                 </Avatar>
@@ -105,7 +106,7 @@ export function AppShell({ children }: { children: ReactNode }) {
       </Sidebar>
 
       <SidebarInset>
-        <header className="flex h-14 shrink-0 items-center gap-2 px-4">
+        <header className="border-border/60 flex h-14 shrink-0 items-center gap-2 border-b px-4">
           <SidebarTrigger />
           <Separator orientation="vertical" className="h-4" />
           <span className="text-sm font-medium capitalize">

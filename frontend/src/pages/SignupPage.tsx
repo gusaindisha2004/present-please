@@ -142,6 +142,19 @@ export default function SignupPage() {
           ? "Create subjects and let AI take attendance for you."
           : "Enroll with a code and sign in with just your face."
       }
+      features={
+        role === "teacher"
+          ? [
+              "Scan classroom photos and let AI mark attendance",
+              "Track every subject's attendance in one place",
+              "Export reports whenever you need them",
+            ]
+          : [
+              "Sign in with your face — no password to remember",
+              "Join classes instantly with a share code",
+              "See your attendance history at a glance",
+            ]
+      }
     >
       <div className="mb-6">
         <h1 className="text-2xl font-semibold tracking-tight">
