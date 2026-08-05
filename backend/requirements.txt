@@ -2,14 +2,19 @@
 fastapi==0.115.6
 uvicorn[standard]==0.34.0
 python-multipart==0.0.20
-pydantic==2.10.4
+pydantic==2.13.4
 pydantic-settings==2.7.1
 
 # Auth (verify Supabase JWTs)
 pyjwt[crypto]==2.10.1
 
-# Supabase (service_role access to biometric tables + storage)
-supabase==2.15.0
+# Supabase (service_role access to biometric tables + storage).
+# NOTE: 2.15.0 (this project's original pin) client-side-validates the API
+# key against a JWT-shaped regex and rejects Supabase's newer sb_secret_/
+# sb_publishable_ key format with "Invalid API key" before ever making a
+# request. 2.31.0 (current latest) handles it correctly; didn't bisect
+# the exact version the fix landed in.
+supabase==2.31.0
 
 # Face recognition — unchanged from the original pipeline
 numpy==1.26.4

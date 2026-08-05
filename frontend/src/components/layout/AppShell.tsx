@@ -1,5 +1,6 @@
 import type { ReactNode } from "react"
-import { LayoutDashboard, LogOut } from "lucide-react"
+import { Link, useLocation } from "react-router-dom"
+import { LayoutDashboard, LogOut, BookOpen } from "lucide-react"
 
 import { useAuth } from "@/context/AuthContext"
 import { Logo } from "@/components/branding/Logo"
@@ -39,6 +40,15 @@ function initials(name: string) {
 
 export function AppShell({ children }: { children: ReactNode }) {
   const { profile, signOut } = useAuth()
+  const location = useLocation()
+
+  const basePath = profile?.role === "teacher" ? "/t" : "/s"
+  const navItems = [
+    { to: basePath, label: "Dashboard", icon: LayoutDashboard },
+    { to: `${basePath}/subjects`, label: "Subjects", icon: BookOpen },
+  ]
+  const currentLabel =
+    navItems.find((item) => item.to === location.pathname)?.label ?? "Dashboard"
 
   // No explicit redirect needed here: signing out clears the user in
   // AuthContext, and ProtectedRoute (wrapping this shell) redirects to
@@ -63,12 +73,20 @@ export function AppShell({ children }: { children: ReactNode }) {
           <SidebarGroup>
             <SidebarGroupContent>
               <SidebarMenu>
-                <SidebarMenuItem>
-                  <SidebarMenuButton isActive tooltip="Dashboard">
-                    <LayoutDashboard />
-                    <span>Dashboard</span>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
+                {navItems.map((item) => (
+                  <SidebarMenuItem key={item.to}>
+                    <SidebarMenuButton
+                      asChild
+                      isActive={location.pathname === item.to}
+                      tooltip={item.label}
+                    >
+                      <Link to={item.to}>
+                        <item.icon />
+                        <span>{item.label}</span>
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                ))}
               </SidebarMenu>
             </SidebarGroupContent>
           </SidebarGroup>
@@ -109,9 +127,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         <header className="border-border/60 flex h-14 shrink-0 items-center gap-2 border-b px-4">
           <SidebarTrigger />
           <Separator orientation="vertical" className="h-4" />
-          <span className="text-sm font-medium capitalize">
-            {profile?.role} dashboard
-          </span>
+          <span className="text-sm font-medium">{currentLabel}</span>
         </header>
         <main className="flex-1 px-4 pb-8 sm:px-6">{children}</main>
       </SidebarInset>

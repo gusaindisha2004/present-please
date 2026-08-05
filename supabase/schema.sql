@@ -63,18 +63,18 @@ security definer set search_path = public
 as $$
 declare
   chars text := 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-  code text;
+  new_code text;
   taken boolean;
 begin
   loop
-    code := '';
+    new_code := '';
     for i in 1..6 loop
-      code := code || substr(chars, floor(random() * length(chars) + 1)::int, 1);
+      new_code := new_code || substr(chars, floor(random() * length(chars) + 1)::int, 1);
     end loop;
-    select exists(select 1 from public.subjects where join_code = code) into taken;
+    select exists(select 1 from public.subjects where subjects.join_code = new_code) into taken;
     exit when not taken;
   end loop;
-  return code;
+  return new_code;
 end;
 $$;
 

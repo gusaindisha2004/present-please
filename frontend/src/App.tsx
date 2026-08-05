@@ -10,8 +10,11 @@ import LandingPage from "@/pages/LandingPage"
 import LoginPage from "@/pages/LoginPage"
 import SignupPage from "@/pages/SignupPage"
 import NotFoundPage from "@/pages/NotFoundPage"
+import JoinByCodePage from "@/pages/JoinByCodePage"
 import TeacherDashboardPage from "@/pages/teacher/TeacherDashboardPage"
+import TeacherSubjectsPage from "@/pages/teacher/TeacherSubjectsPage"
 import StudentDashboardPage from "@/pages/student/StudentDashboardPage"
+import StudentSubjectsPage from "@/pages/student/StudentSubjectsPage"
 
 function App() {
   return (
@@ -32,6 +35,16 @@ function App() {
               </ProtectedRoute>
             }
           />
+          <Route
+            path="/t/subjects"
+            element={
+              <ProtectedRoute requiredRole="teacher">
+                <AppShell>
+                  <TeacherSubjectsPage />
+                </AppShell>
+              </ProtectedRoute>
+            }
+          />
 
           <Route
             path="/s"
@@ -40,6 +53,25 @@ function App() {
                 <AppShell>
                   <StudentDashboardPage />
                 </AppShell>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/s/subjects"
+            element={
+              <ProtectedRoute requiredRole="student">
+                <AppShell>
+                  <StudentSubjectsPage />
+                </AppShell>
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/join/:code"
+            element={
+              <ProtectedRoute requiredRole="student">
+                <JoinByCodePage />
               </ProtectedRoute>
             }
           />

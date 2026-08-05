@@ -1,11 +1,12 @@
-import { Presentation, BookOpen, ScanFace, ClipboardList } from "lucide-react"
+import { Link } from "react-router-dom"
+import { Presentation, BookOpen, ScanFace, ClipboardList, ArrowRight } from "lucide-react"
 
 import { useAuth } from "@/context/AuthContext"
 import { BlobIllustration } from "@/components/illustrations/BlobIllustration"
 import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
 
 const UPCOMING = [
-  { icon: BookOpen, label: "Subjects" },
   { icon: ScanFace, label: "Take attendance" },
   { icon: ClipboardList, label: "Reports" },
 ]
@@ -21,10 +22,17 @@ export default function TeacherDashboardPage() {
           Welcome, {profile?.full_name?.split(" ")[0]}
         </h1>
         <p className="text-muted-foreground mt-2 max-w-sm text-balance">
-          Your subjects, attendance tools, and reports are coming together
-          in the next phases of this build.
+          Manage your subjects now. Attendance tools and reports are coming
+          together in the next phases of this build.
         </p>
       </div>
+      <Button asChild>
+        <Link to="/t/subjects">
+          <BookOpen />
+          Manage Subjects
+          <ArrowRight />
+        </Link>
+      </Button>
       <div className="flex flex-wrap items-center justify-center gap-2">
         {UPCOMING.map(({ icon: Icon, label }) => (
           <Badge key={label} variant="outline" className="text-muted-foreground">
