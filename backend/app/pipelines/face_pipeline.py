@@ -45,6 +45,10 @@ def load_dlib_models():
     return _dlib_models
 
 
+def dlib_models_loaded() -> bool:
+    return _dlib_models is not None
+
+
 def get_face_embeddings(image_np: np.ndarray) -> list[np.ndarray]:
     detector, sp, facerec = load_dlib_models()
     faces = detector(image_np, 1)

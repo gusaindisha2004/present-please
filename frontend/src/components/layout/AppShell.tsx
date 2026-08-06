@@ -1,6 +1,6 @@
 import type { ReactNode } from "react"
 import { Link, useLocation } from "react-router-dom"
-import { LayoutDashboard, LogOut, BookOpen } from "lucide-react"
+import { LayoutDashboard, LogOut, BookOpen, ScanFace } from "lucide-react"
 
 import { useAuth } from "@/context/AuthContext"
 import { Logo } from "@/components/branding/Logo"
@@ -46,6 +46,9 @@ export function AppShell({ children }: { children: ReactNode }) {
   const navItems = [
     { to: basePath, label: "Dashboard", icon: LayoutDashboard },
     { to: `${basePath}/subjects`, label: "Subjects", icon: BookOpen },
+    ...(profile?.role === "student"
+      ? [{ to: `${basePath}/profile`, label: "Profile", icon: ScanFace }]
+      : []),
   ]
   const currentLabel =
     navItems.find((item) => item.to === location.pathname)?.label ?? "Dashboard"

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react"
 import { Link, useNavigate, useSearchParams } from "react-router-dom"
-import { useForm } from "react-hook-form"
+import { useForm, type UseFormReturn } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
 import { GraduationCap, Presentation, Loader2, Eye, EyeOff } from "lucide-react"
@@ -10,8 +10,10 @@ import { supabase } from "@/lib/supabase"
 import { useAuth } from "@/context/AuthContext"
 import type { Role } from "@/types/database"
 import { AuthSplitLayout } from "@/components/layout/AuthSplitLayout"
+import { FaceLoginPanel } from "@/components/auth/FaceLoginPanel"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
 import {
   Form,
   FormControl,
@@ -110,60 +112,40 @@ export default function LoginPage() {
         </p>
       </div>
 
-      <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-          <FormField
-            control={form.control}
-            name="email"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Email</FormLabel>
-                <FormControl>
-                  <Input placeholder="you@example.com" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+      {role === "student" ? (
+        <Tabs defaultValue="password">
+          <TabsList className="w-full">
+            <TabsTrigger value="password" className="flex-1">
+              Password
+            </TabsTrigger>
+            <TabsTrigger value="face" className="flex-1">
+              Face
+            </TabsTrigger>
+          </TabsList>
 
-          <FormField
-            control={form.control}
-            name="password"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Password</FormLabel>
-                <FormControl>
-                  <div className="relative">
-                    <Input
-                      type={showPassword ? "text" : "password"}
-                      placeholder="••••••••"
-                      {...field}
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowPassword((v) => !v)}
-                      className="text-muted-foreground hover:text-foreground absolute inset-y-0 right-0 flex items-center pr-3"
-                      tabIndex={-1}
-                    >
-                      {showPassword ? (
-                        <EyeOff className="size-4" />
-                      ) : (
-                        <Eye className="size-4" />
-                      )}
-                    </button>
-                  </div>
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+          <TabsContent value="password" className="mt-4">
+            <PasswordForm
+              form={form}
+              onSubmit={onSubmit}
+              submitting={submitting}
+              showPassword={showPassword}
+              setShowPassword={setShowPassword}
+            />
+          </TabsContent>
 
-          <Button type="submit" className="w-full" disabled={submitting}>
-            {submitting && <Loader2 className="animate-spin" />}
-            Sign in
-          </Button>
-        </form>
-      </Form>
+          <TabsContent value="face" className="mt-4">
+            <FaceLoginPanel />
+          </TabsContent>
+        </Tabs>
+      ) : (
+        <PasswordForm
+          form={form}
+          onSubmit={onSubmit}
+          submitting={submitting}
+          showPassword={showPassword}
+          setShowPassword={setShowPassword}
+        />
+      )}
 
       <p className="text-muted-foreground mt-6 text-center text-sm">
         Don't have an account?{" "}
@@ -175,5 +157,76 @@ export default function LoginPage() {
         </Link>
       </p>
     </AuthSplitLayout>
+  )
+}
+
+function PasswordForm({
+  form,
+  onSubmit,
+  submitting,
+  showPassword,
+  setShowPassword,
+}: {
+  form: UseFormReturn<z.infer<typeof loginSchema>>
+  onSubmit: (values: z.infer<typeof loginSchema>) => void
+  submitting: boolean
+  showPassword: boolean
+  setShowPassword: (fn: (value: boolean) => boolean) => void
+}) {
+  return (
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+        <FormField
+          control={form.control}
+          name="email"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Email</FormLabel>
+              <FormControl>
+                <Input placeholder="you@example.com" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="password"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Password</FormLabel>
+              <FormControl>
+                <div className="relative">
+                  <Input
+                    type={showPassword ? "text" : "password"}
+                    placeholder="••••••••"
+                    {...field}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword((v) => !v)}
+                    className="text-muted-foreground hover:text-foreground absolute inset-y-0 right-0 flex items-center pr-3"
+                    tabIndex={-1}
+                  >
+                    {showPassword ? (
+                      <EyeOff className="size-4" />
+                    ) : (
+                      <Eye className="size-4" />
+                    )}
+                  </button>
+                </div>
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <Button type="submit" className="w-full" disabled={submitting}>
+          {submitting && <Loader2 className="animate-spin" />}
+          Sign in
+        </Button>
+      </form>
+    </Form>
   )
 }

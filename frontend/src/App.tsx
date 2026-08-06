@@ -15,6 +15,7 @@ import TeacherDashboardPage from "@/pages/teacher/TeacherDashboardPage"
 import TeacherSubjectsPage from "@/pages/teacher/TeacherSubjectsPage"
 import StudentDashboardPage from "@/pages/student/StudentDashboardPage"
 import StudentSubjectsPage from "@/pages/student/StudentSubjectsPage"
+import StudentProfilePage from "@/pages/student/StudentProfilePage"
 
 function App() {
   return (
@@ -62,6 +63,17 @@ function App() {
               <ProtectedRoute requiredRole="student">
                 <AppShell>
                   <StudentSubjectsPage />
+                </AppShell>
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/s/profile"
+            element={
+              <ProtectedRoute requiredRole="student">
+                <AppShell>
+                  <StudentProfilePage />
                 </AppShell>
               </ProtectedRoute>
             }

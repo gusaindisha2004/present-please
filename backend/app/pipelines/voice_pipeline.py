@@ -37,6 +37,10 @@ def load_voice_encoder() -> VoiceEncoder:
     return _encoder
 
 
+def voice_encoder_loaded() -> bool:
+    return _encoder is not None
+
+
 def get_voice_embedding(audio_bytes: bytes) -> list[float]:
     try:
         encoder = load_voice_encoder()
