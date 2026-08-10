@@ -85,7 +85,10 @@ export default function TeacherSubjectsPage() {
                 stats={[
                   {
                     icon: Users,
-                    label: "students",
+                    label:
+                      (subject.enrollments?.[0]?.count ?? 0) === 1
+                        ? "student"
+                        : "students",
                     value: subject.enrollments?.[0]?.count ?? 0,
                   },
                 ]}
