@@ -6,7 +6,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.core.config import settings
 from app.pipelines.face_pipeline import get_trained_model, load_dlib_models
 from app.pipelines.voice_pipeline import load_voice_encoder
-from app.routers import face, health, subjects, voice
+from app.routers import attendance, face, health, subjects, voice
 
 
 @asynccontextmanager
@@ -34,3 +34,4 @@ app.include_router(health.router)
 app.include_router(subjects.router)
 app.include_router(face.router)
 app.include_router(voice.router)
+app.include_router(attendance.router)

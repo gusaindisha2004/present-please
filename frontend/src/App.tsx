@@ -13,6 +13,7 @@ import NotFoundPage from "@/pages/NotFoundPage"
 import JoinByCodePage from "@/pages/JoinByCodePage"
 import TeacherDashboardPage from "@/pages/teacher/TeacherDashboardPage"
 import TeacherSubjectsPage from "@/pages/teacher/TeacherSubjectsPage"
+import TeacherAttendancePage from "@/pages/teacher/TeacherAttendancePage"
 import StudentDashboardPage from "@/pages/student/StudentDashboardPage"
 import StudentSubjectsPage from "@/pages/student/StudentSubjectsPage"
 import StudentProfilePage from "@/pages/student/StudentProfilePage"
@@ -42,6 +43,17 @@ function App() {
               <ProtectedRoute requiredRole="teacher">
                 <AppShell>
                   <TeacherSubjectsPage />
+                </AppShell>
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/t/attendance/:subjectId"
+            element={
+              <ProtectedRoute requiredRole="teacher">
+                <AppShell>
+                  <TeacherAttendancePage />
                 </AppShell>
               </ProtectedRoute>
             }

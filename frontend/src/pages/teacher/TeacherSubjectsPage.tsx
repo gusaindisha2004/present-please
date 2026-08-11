@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react"
-import { Users, Share2, BookOpen } from "lucide-react"
+import { Link } from "react-router-dom"
+import { Users, Share2, BookOpen, ScanFace } from "lucide-react"
 
 import { supabase } from "@/lib/supabase"
 import { useAuth } from "@/context/AuthContext"
@@ -93,15 +94,22 @@ export default function TeacherSubjectsPage() {
                   },
                 ]}
                 footer={
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="w-full"
-                    onClick={() => setShareSubject(subject)}
-                  >
-                    <Share2 />
-                    Share
-                  </Button>
+                  <>
+                    <Button asChild size="sm" className="flex-1">
+                      <Link to={`/t/attendance/${subject.id}`}>
+                        <ScanFace />
+                        Take attendance
+                      </Link>
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setShareSubject(subject)}
+                    >
+                      <Share2 />
+                      Share
+                    </Button>
+                  </>
                 }
               />
             ))}
