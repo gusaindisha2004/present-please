@@ -76,13 +76,18 @@ def identify_speaker(
 
 def process_bulk_audio(
     audio_bytes: bytes, candidates: dict[str, list[float]], threshold: float = 0.65
-) -> dict[str, float]:
+) -> tuple[dict[str, float], int]:
+    """Unchanged decision logic (silence-split segmentation, cosine-similarity
+    threshold match). Also returns how many voiced segments didn't match any
+    candidate, mirroring the face pipeline's unmatched-face count for the
+    attendance review UI."""
     try:
         encoder = load_voice_encoder()
         audio, sr = librosa.load(io.BytesIO(audio_bytes), sr=16000)
         segments = librosa.effects.split(audio, top_db=30)
 
         identified_results: dict[str, float] = {}
+        unmatched_segments = 0
 
         for start, end in segments:
             if (end - start) < sr * 0.5:
@@ -97,7 +102,9 @@ def process_bulk_audio(
             if sid:
                 if sid not in identified_results or score > identified_results[sid]:
                     identified_results[sid] = score
+            else:
+                unmatched_segments += 1
 
-        return identified_results
+        return identified_results, unmatched_segments
     except Exception as e:
         raise VoicePipelineError("Bulk voice processing error") from e
