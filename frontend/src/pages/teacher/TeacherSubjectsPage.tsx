@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react"
 import { Link } from "react-router-dom"
-import { Users, Share2, BookOpen, ScanFace } from "lucide-react"
+import { Users, Share2, BookOpen, ScanFace, History } from "lucide-react"
 
 import { supabase } from "@/lib/supabase"
 import { useAuth } from "@/context/AuthContext"
@@ -108,6 +108,12 @@ export default function TeacherSubjectsPage() {
                     >
                       <Share2 />
                       Share
+                    </Button>
+                    <Button asChild variant="outline" size="sm">
+                      <Link to={`/t/attendance/${subject.id}/history`}>
+                        <History />
+                        History
+                      </Link>
                     </Button>
                   </>
                 }

@@ -48,7 +48,7 @@ export function SubjectCard({
           </div>
         )}
 
-        {footer && <div className="mt-5 flex items-center gap-2">{footer}</div>}
+        {footer && <div className="mt-5 flex flex-wrap items-center gap-2">{footer}</div>}
       </CardContent>
     </Card>
   )
