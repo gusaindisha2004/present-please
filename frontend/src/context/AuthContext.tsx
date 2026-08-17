@@ -30,6 +30,25 @@ async function fetchProfile(userId: string): Promise<Profile | null> {
   return data as Profile | null
 }
 
+// Every real account has a profile row, created by the handle_new_user
+// trigger at signup — a session whose profile is missing means the
+// account was deleted elsewhere while this browser still held a valid
+// token. Treat that as signed out instead of letting ProtectedRoute's
+// role check silently no-op for a null profile.
+async function resolveSession(
+  newSession: Session | null
+): Promise<{ session: Session | null; profile: Profile | null }> {
+  if (!newSession?.user) return { session: newSession, profile: null }
+
+  const fetchedProfile = await fetchProfile(newSession.user.id)
+  if (!fetchedProfile) {
+    await supabase.auth.signOut()
+    return { session: null, profile: null }
+  }
+
+  return { session: newSession, profile: fetchedProfile }
+}
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null)
   const [profile, setProfile] = useState<Profile | null>(null)
@@ -40,20 +59,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     supabase.auth.getSession().then(async ({ data }) => {
       if (!active) return
-      setSession(data.session)
-      if (data.session?.user) {
-        setProfile(await fetchProfile(data.session.user.id))
-      }
+      const resolved = await resolveSession(data.session)
+      if (!active) return
+      setSession(resolved.session)
+      setProfile(resolved.profile)
       setLoading(false)
     })
 
     const { data: listener } = supabase.auth.onAuthStateChange(
       async (_event, newSession) => {
         if (!active) return
-        setSession(newSession)
-        setProfile(
-          newSession?.user ? await fetchProfile(newSession.user.id) : null
-        )
+        const resolved = await resolveSession(newSession)
+        if (!active) return
+        setSession(resolved.session)
+        setProfile(resolved.profile)
         setLoading(false)
       }
     )
