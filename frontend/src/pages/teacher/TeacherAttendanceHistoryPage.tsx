@@ -6,12 +6,14 @@ import {
   ChevronDown,
   ChevronUp,
   ClipboardList,
+  Download,
   Mic,
 } from "lucide-react"
 
 import { supabase } from "@/lib/supabase"
 import type { AttendanceMethod, Subject } from "@/types/database"
 import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
 import { BlobIllustration } from "@/components/illustrations/BlobIllustration"
@@ -57,6 +59,39 @@ const dateFormatter = new Intl.DateTimeFormat(undefined, {
   dateStyle: "medium",
   timeStyle: "short",
 })
+
+function csvField(value: string): string {
+  if (/[",\n]/.test(value)) return `"${value.replace(/"/g, '""')}"`
+  return value
+}
+
+function downloadSessionCsv(session: Session, subject: Subject | null) {
+  const rows = [...session.attendance_records]
+    .sort((a, b) =>
+      (a.profiles?.full_name ?? "").localeCompare(b.profiles?.full_name ?? "")
+    )
+    .map((record) => [
+      record.profiles?.full_name ?? "Unknown",
+      record.is_present ? "Present" : "Absent",
+      record.confidence !== null ? `${Math.round(record.confidence * 100)}%` : "",
+    ])
+
+  const csv = [["Student", "Status", "Confidence"], ...rows]
+    .map((row) => row.map(csvField).join(","))
+    .join("\n")
+
+  const dateSlug = session.taken_at.slice(0, 10)
+  const subjectSlug = (subject?.code ?? "attendance").replace(/[^a-z0-9]+/gi, "-")
+  const filename = `${subjectSlug}-${dateSlug}.csv`
+
+  const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" })
+  const url = URL.createObjectURL(blob)
+  const link = document.createElement("a")
+  link.href = url
+  link.download = filename
+  link.click()
+  URL.revokeObjectURL(url)
+}
 
 export default function TeacherAttendanceHistoryPage() {
   const { subjectId } = useParams<{ subjectId: string }>()
@@ -141,34 +176,45 @@ export default function TeacherAttendanceHistoryPage() {
             return (
               <Card key={session.id} className="rounded-2xl">
                 <CardContent>
-                  <button
-                    type="button"
-                    onClick={() => setExpandedId(expanded ? null : session.id)}
-                    className="flex w-full flex-wrap items-center justify-between gap-3 text-left"
-                  >
-                    <div>
-                      <p className="text-sm font-medium">
-                        {dateFormatter.format(new Date(session.taken_at))}
-                      </p>
-                      <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
-                        <Badge variant="outline">
-                          <MethodIcon className="size-3" />
-                          {METHOD_LABEL[session.method]}
-                        </Badge>
-                        <Badge className="bg-success/15 text-success">
-                          {presentCount} present
-                        </Badge>
-                        <Badge className="bg-destructive/15 text-destructive">
-                          {absentCount} absent
-                        </Badge>
+                  <div className="flex w-full flex-wrap items-center justify-between gap-3">
+                    <button
+                      type="button"
+                      onClick={() => setExpandedId(expanded ? null : session.id)}
+                      className="flex flex-1 items-center gap-3 text-left"
+                    >
+                      <div>
+                        <p className="text-sm font-medium">
+                          {dateFormatter.format(new Date(session.taken_at))}
+                        </p>
+                        <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
+                          <Badge variant="outline">
+                            <MethodIcon className="size-3" />
+                            {METHOD_LABEL[session.method]}
+                          </Badge>
+                          <Badge className="bg-success/15 text-success">
+                            {presentCount} present
+                          </Badge>
+                          <Badge className="bg-destructive/15 text-destructive">
+                            {absentCount} absent
+                          </Badge>
+                        </div>
                       </div>
-                    </div>
-                    {expanded ? (
-                      <ChevronUp className="text-muted-foreground size-4 shrink-0" />
-                    ) : (
-                      <ChevronDown className="text-muted-foreground size-4 shrink-0" />
-                    )}
-                  </button>
+                      {expanded ? (
+                        <ChevronUp className="text-muted-foreground size-4 shrink-0" />
+                      ) : (
+                        <ChevronDown className="text-muted-foreground size-4 shrink-0" />
+                      )}
+                    </button>
+
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => downloadSessionCsv(session, subject)}
+                    >
+                      <Download />
+                      Export CSV
+                    </Button>
+                  </div>
 
                   {expanded && (
                     <div className="mt-4 rounded-xl border">
