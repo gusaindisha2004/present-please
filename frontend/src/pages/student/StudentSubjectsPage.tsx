@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react"
-import { UserMinus, BookOpen } from "lucide-react"
+import { Link } from "react-router-dom"
+import { UserMinus, BookOpen, History } from "lucide-react"
 import { toast } from "sonner"
 
 import { supabase } from "@/lib/supabase"
@@ -91,17 +92,25 @@ export default function StudentSubjectsPage() {
                 code={enrollment.subjects.code}
                 section={enrollment.subjects.section}
                 footer={
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="text-destructive hover:bg-destructive/10 hover:text-destructive w-full"
-                    onClick={() =>
-                      handleUnenroll(enrollment.id, enrollment.subjects.name)
-                    }
-                  >
-                    <UserMinus />
-                    Unenroll
-                  </Button>
+                  <>
+                    <Button asChild variant="outline" size="sm" className="flex-1">
+                      <Link to={`/s/attendance/${enrollment.subjects.id}/history`}>
+                        <History />
+                        History
+                      </Link>
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="text-destructive hover:bg-destructive/10 hover:text-destructive"
+                      onClick={() =>
+                        handleUnenroll(enrollment.id, enrollment.subjects.name)
+                      }
+                    >
+                      <UserMinus />
+                      Unenroll
+                    </Button>
+                  </>
                 }
               />
             ))}

@@ -18,6 +18,7 @@ import TeacherAttendanceHistoryPage from "@/pages/teacher/TeacherAttendanceHisto
 import StudentDashboardPage from "@/pages/student/StudentDashboardPage"
 import StudentSubjectsPage from "@/pages/student/StudentSubjectsPage"
 import StudentProfilePage from "@/pages/student/StudentProfilePage"
+import StudentAttendanceHistoryPage from "@/pages/student/StudentAttendanceHistoryPage"
 
 function App() {
   return (
@@ -87,6 +88,17 @@ function App() {
               <ProtectedRoute requiredRole="student">
                 <AppShell>
                   <StudentSubjectsPage />
+                </AppShell>
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/s/attendance/:subjectId/history"
+            element={
+              <ProtectedRoute requiredRole="student">
+                <AppShell>
+                  <StudentAttendanceHistoryPage />
                 </AppShell>
               </ProtectedRoute>
             }

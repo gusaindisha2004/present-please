@@ -2,15 +2,14 @@ import { useEffect, useState } from "react"
 import { Link, useParams } from "react-router-dom"
 import {
   ArrowLeft,
-  Camera,
   ChevronDown,
   ChevronUp,
   ClipboardList,
   Download,
-  Mic,
 } from "lucide-react"
 
 import { supabase } from "@/lib/supabase"
+import { METHOD_ICON, METHOD_LABEL, dateFormatter } from "@/lib/attendance"
 import type { AttendanceMethod, Subject } from "@/types/database"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -42,23 +41,6 @@ interface Session {
   note: string | null
   attendance_records: SessionRecord[]
 }
-
-const METHOD_ICON: Record<AttendanceMethod, typeof Camera> = {
-  face: Camera,
-  voice: Mic,
-  manual: ClipboardList,
-}
-
-const METHOD_LABEL: Record<AttendanceMethod, string> = {
-  face: "Face",
-  voice: "Voice",
-  manual: "Manual",
-}
-
-const dateFormatter = new Intl.DateTimeFormat(undefined, {
-  dateStyle: "medium",
-  timeStyle: "short",
-})
 
 function csvField(value: string): string {
   if (/[",\n]/.test(value)) return `"${value.replace(/"/g, '""')}"`
