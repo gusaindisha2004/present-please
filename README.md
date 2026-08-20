@@ -86,16 +86,62 @@ frontend exchanges it for a real session via
 Both `.env` files are gitignored — copy the checked-in `.env.example`
 next to each and fill in your own Supabase project's values.
 
+## Deploying
+
+Backend on **Render**, frontend on **Vercel**. The repo has the config
+files each platform needs; the account/dashboard steps below are yours
+to do — nothing here creates a service or enters a secret for you.
+
+**Backend (Render)**
+
+1. New → Blueprint, point it at this repo. Render reads
+   [`backend/render.yaml`](backend/render.yaml) and proposes a web
+   service rooted at `backend/`.
+2. Fill in the env vars it prompts for (`SUPABASE_URL`,
+   `SUPABASE_SECRET_KEY`, `SUPABASE_JWKS_URL`) — same values as your
+   local `backend/.env`. Leave `FRONTEND_ORIGIN` for step 4.
+3. Deploy, then note the service's URL
+   (`https://present-please-backend.onrender.com`-style).
+   `render.yaml` requests the `starter` plan — torch + dlib both need to
+   load into memory at startup, which is unlikely to fit the free tier's
+   RAM. Check Render's current plan specs and adjust if needed.
+4. Once you also have the Vercel URL (below), set `FRONTEND_ORIGIN` on
+   the Render service to it, exactly (no trailing slash) — `main.py`'s
+   CORS middleware only allows that one origin.
+
+**Frontend (Vercel)**
+
+1. New Project, import this repo, set **Root Directory** to `frontend`.
+   Vercel auto-detects Vite; [`frontend/vercel.json`](frontend/vercel.json)
+   adds the SPA rewrite React Router needs (without it, refreshing on
+   any route other than `/` 404s).
+2. Add the three env vars from `frontend/.env.local.example`
+   (`VITE_SUPABASE_URL`, `VITE_SUPABASE_PUBLISHABLE_KEY`, and
+   `VITE_API_URL` set to the Render URL from above).
+3. Deploy, then go back and set the Render `FRONTEND_ORIGIN` to this
+   Vercel URL (step 4 above).
+
+**Supabase Auth URL configuration**
+
+Authentication → URL Configuration → set **Site URL** to your Vercel
+URL, and add it under **Additional Redirect URLs** too. This only
+affects normal signup's email-confirmation link — face login never
+follows a redirect (the backend hands the token hash straight back over
+the API, and the frontend calls `verifyOtp` with it directly), so it
+isn't affected either way, but is worth testing after deploy regardless.
+
 ## Build status
 
-Phases 0–8 are complete: auth, subjects & enrollment, face + voice AI
+Phases 0–9 are complete: auth, subjects & enrollment, face + voice AI
 enrollment and face login, face attendance (scan → review → save), voice
-attendance, teacher and student attendance history with CSV export, and
-a documentation/polish pass. See `git log` for the phase-by-phase commit
+attendance, teacher and student attendance history with CSV export,
+polish, and documentation. See `git log` for the phase-by-phase commit
 history.
 
-Not yet built: cross-subject/aggregate reports, and a deployed instance
-(this has only run locally so far).
+Deploy config exists (above) but the app has only actually been
+deployed if you've since run through those steps yourself.
+
+Not yet built: cross-subject/aggregate reports.
 
 ## Known limitations
 
