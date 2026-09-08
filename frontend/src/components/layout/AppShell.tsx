@@ -1,6 +1,12 @@
 import type { ReactNode } from "react"
 import { Link, useLocation } from "react-router-dom"
-import { LayoutDashboard, LogOut, BookOpen, ScanFace } from "lucide-react"
+import {
+  LayoutDashboard,
+  LogOut,
+  BookOpen,
+  ScanFace,
+  CalendarDays,
+} from "lucide-react"
 
 import { useAuth } from "@/context/AuthContext"
 import { Logo } from "@/components/branding/Logo"
@@ -45,6 +51,11 @@ export function AppShell({ children }: { children: ReactNode }) {
   const basePath = profile?.role === "teacher" ? "/t" : "/s"
   const navItems = [
     { to: basePath, label: "Dashboard", icon: LayoutDashboard },
+    // Attendance isn't its own destination for teachers — it's reached
+    // through a class, either from the timetable or from a subject.
+    ...(profile?.role === "teacher"
+      ? [{ to: `${basePath}/timetable`, label: "Timetable", icon: CalendarDays }]
+      : []),
     { to: `${basePath}/subjects`, label: "Subjects", icon: BookOpen },
     ...(profile?.role === "student"
       ? [{ to: `${basePath}/profile`, label: "Profile", icon: ScanFace }]

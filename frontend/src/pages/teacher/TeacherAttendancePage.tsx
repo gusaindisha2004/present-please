@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react"
-import { Link, useNavigate, useParams } from "react-router-dom"
+import { Link, useNavigate, useParams, useSearchParams } from "react-router-dom"
 import {
   ArrowLeft,
   Camera,
@@ -52,6 +52,11 @@ interface VoiceScanResponse {
 
 export default function TeacherAttendancePage() {
   const { subjectId } = useParams<{ subjectId: string }>()
+  const [searchParams] = useSearchParams()
+  // Set when the teacher arrived from a scheduled class, so the session we
+  // create can be tied back to it. Absent for ad-hoc attendance, which
+  // still works exactly as before.
+  const scheduledClassId = searchParams.get("classId")
   const { profile } = useAuth()
   const navigate = useNavigate()
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -166,7 +171,12 @@ export default function TeacherAttendancePage() {
 
     const { data: session, error: sessionError } = await supabase
       .from("attendance_sessions")
-      .insert({ subject_id: subjectId, taken_by: profile.id, method: scannedMethod })
+      .insert({
+        subject_id: subjectId,
+        taken_by: profile.id,
+        method: scannedMethod,
+        scheduled_class_id: scheduledClassId,
+      })
       .select()
       .single()
 

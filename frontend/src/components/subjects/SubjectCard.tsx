@@ -15,12 +15,15 @@ export function SubjectCard({
   code,
   section,
   stats,
+  meta,
   footer,
 }: {
   name: string
   code: string
   section: string
   stats?: SubjectCardStat[]
+  /** Optional label/value rows (next class, attendance) above the actions. */
+  meta?: ReactNode
   footer?: ReactNode
 }) {
   return (
@@ -47,6 +50,8 @@ export function SubjectCard({
             ))}
           </div>
         )}
+
+        {meta && <div className="mt-4 space-y-1.5">{meta}</div>}
 
         {footer && <div className="mt-5 flex flex-wrap items-center gap-2">{footer}</div>}
       </CardContent>

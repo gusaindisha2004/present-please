@@ -14,7 +14,8 @@ import JoinByCodePage from "@/pages/JoinByCodePage"
 import TeacherDashboardPage from "@/pages/teacher/TeacherDashboardPage"
 import TeacherSubjectsPage from "@/pages/teacher/TeacherSubjectsPage"
 import TeacherAttendancePage from "@/pages/teacher/TeacherAttendancePage"
-import TeacherAttendanceHistoryPage from "@/pages/teacher/TeacherAttendanceHistoryPage"
+import TeacherSubjectClassesPage from "@/pages/teacher/TeacherSubjectClassesPage"
+import TeacherTimetablePage from "@/pages/teacher/TeacherTimetablePage"
 import StudentDashboardPage from "@/pages/student/StudentDashboardPage"
 import StudentSubjectsPage from "@/pages/student/StudentSubjectsPage"
 import StudentProfilePage from "@/pages/student/StudentProfilePage"
@@ -51,6 +52,28 @@ function App() {
           />
 
           <Route
+            path="/t/timetable"
+            element={
+              <ProtectedRoute requiredRole="teacher">
+                <AppShell>
+                  <TeacherTimetablePage />
+                </AppShell>
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/t/subjects/:subjectId/classes"
+            element={
+              <ProtectedRoute requiredRole="teacher">
+                <AppShell>
+                  <TeacherSubjectClassesPage />
+                </AppShell>
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
             path="/t/attendance/:subjectId"
             element={
               <ProtectedRoute requiredRole="teacher">
@@ -66,7 +89,7 @@ function App() {
             element={
               <ProtectedRoute requiredRole="teacher">
                 <AppShell>
-                  <TeacherAttendanceHistoryPage />
+                  <TeacherSubjectClassesPage />
                 </AppShell>
               </ProtectedRoute>
             }

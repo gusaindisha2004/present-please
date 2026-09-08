@@ -39,6 +39,33 @@ export interface AttendanceSession {
   method: AttendanceMethod
   taken_at: string
   note: string | null
+  scheduled_class_id: string | null
+}
+
+// A recurring weekly slot: "Operating System, Mondays 9–10, Lab 3".
+export interface TimetableSlot {
+  id: string
+  subject_id: string
+  day_of_week: number // 0 = Sunday
+  start_time: string // "09:00:00"
+  end_time: string
+  room: string | null
+  created_at: string
+}
+
+// One concrete occurrence of a slot on one date. Only scheduled/cancelled
+// is stored — upcoming/pending/completed are derived (see lib/scheduling).
+export interface ScheduledClass {
+  id: string
+  subject_id: string
+  slot_id: string | null
+  class_date: string // "2026-09-14"
+  start_time: string
+  end_time: string
+  room: string | null
+  status: "scheduled" | "cancelled"
+  cancel_reason: string | null
+  created_at: string
 }
 
 export interface AttendanceRecord {
