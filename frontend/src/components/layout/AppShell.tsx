@@ -6,6 +6,7 @@ import {
   BookOpen,
   ScanFace,
   CalendarDays,
+  ClipboardCheck,
 } from "lucide-react"
 
 import { useAuth } from "@/context/AuthContext"
@@ -51,10 +52,12 @@ export function AppShell({ children }: { children: ReactNode }) {
   const basePath = profile?.role === "teacher" ? "/t" : "/s"
   const navItems = [
     { to: basePath, label: "Dashboard", icon: LayoutDashboard },
-    // Attendance isn't its own destination for teachers — it's reached
-    // through a class, either from the timetable or from a subject.
-    ...(profile?.role === "teacher"
-      ? [{ to: `${basePath}/timetable`, label: "Timetable", icon: CalendarDays }]
+    // Both roles get a timetable; it's their own schedule either way.
+    { to: `${basePath}/timetable`, label: "Timetable", icon: CalendarDays },
+    // Teachers reach attendance through a class, so it isn't a destination
+    // for them. Students monitor their own, so for them it is.
+    ...(profile?.role === "student"
+      ? [{ to: `${basePath}/attendance`, label: "Attendance", icon: ClipboardCheck }]
       : []),
     { to: `${basePath}/subjects`, label: "Subjects", icon: BookOpen },
     ...(profile?.role === "student"

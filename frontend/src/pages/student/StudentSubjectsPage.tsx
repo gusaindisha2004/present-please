@@ -1,10 +1,13 @@
 import { useEffect, useState } from "react"
 import { Link } from "react-router-dom"
-import { UserMinus, BookOpen, History } from "lucide-react"
+import { UserMinus, BookOpen, ClipboardCheck } from "lucide-react"
 import { toast } from "sonner"
 
 import { supabase } from "@/lib/supabase"
 import { useAuth } from "@/context/AuthContext"
+import { useStudentSchedule } from "@/hooks/useStudentSchedule"
+import { rateTone } from "@/lib/attendance"
+import { formatTime, toDateKey } from "@/lib/scheduling"
 import type { Enrollment, Subject } from "@/types/database"
 import { SubjectCard } from "@/components/subjects/SubjectCard"
 import { EnrollDialog } from "@/components/subjects/EnrollDialog"
@@ -16,7 +19,9 @@ type EnrollmentWithSubject = Enrollment & { subjects: Subject }
 
 export default function StudentSubjectsPage() {
   const { profile } = useAuth()
+  const { statsBySubject, reload: reloadSchedule } = useStudentSchedule()
   const [enrollments, setEnrollments] = useState<EnrollmentWithSubject[] | null>(null)
+  const todayKey = toDateKey(new Date())
 
   const loadEnrollments = async (studentId: string) => {
     const { data, error } = await supabase
@@ -45,6 +50,7 @@ export default function StudentSubjectsPage() {
 
     toast.success(`Unenrolled from ${subjectName}`)
     setEnrollments((prev) => prev?.filter((e) => e.id !== enrollmentId) ?? null)
+    reloadSchedule()
   }
 
   return (
@@ -59,7 +65,10 @@ export default function StudentSubjectsPage() {
         {profile && (
           <EnrollDialog
             studentId={profile.id}
-            onEnrolled={() => loadEnrollments(profile.id)}
+            onEnrolled={() => {
+              loadEnrollments(profile.id)
+              reloadSchedule()
+            }}
           />
         )}
       </div>
@@ -85,18 +94,53 @@ export default function StudentSubjectsPage() {
           </div>
         ) : (
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {enrollments.map((enrollment) => (
+            {enrollments.map((enrollment) => {
+              const stats = statsBySubject[enrollment.subjects.id]
+              const next = stats?.nextClass
+              return (
               <SubjectCard
                 key={enrollment.id}
                 name={enrollment.subjects.name}
                 code={enrollment.subjects.code}
                 section={enrollment.subjects.section}
+                meta={
+                  <>
+                    <div className="flex items-baseline justify-between gap-3 text-sm">
+                      <span className="text-muted-foreground">Attendance</span>
+                      <span className="text-right font-medium">
+                        {stats && stats.conducted > 0 ? (
+                          <>
+                            <span className={rateTone(stats.rate)}>
+                              {stats.rate}%
+                            </span>
+                            <span className="text-muted-foreground">
+                              {" · "}
+                              {stats.present}/{stats.conducted} classes
+                            </span>
+                          </>
+                        ) : (
+                          <span className="text-muted-foreground">
+                            No classes yet
+                          </span>
+                        )}
+                      </span>
+                    </div>
+                    <div className="flex items-baseline justify-between gap-3 text-sm">
+                      <span className="text-muted-foreground">Next class</span>
+                      <span className="text-right font-medium">
+                        {next
+                          ? `${next.class_date === todayKey ? "Today" : next.start.toLocaleDateString(undefined, { weekday: "short", day: "numeric", month: "short" })} · ${formatTime(next.start_time)}`
+                          : "Nothing scheduled"}
+                      </span>
+                    </div>
+                  </>
+                }
                 footer={
                   <>
-                    <Button asChild variant="outline" size="sm" className="flex-1">
-                      <Link to={`/s/attendance/${enrollment.subjects.id}/history`}>
-                        <History />
-                        History
+                    <Button asChild size="sm" className="flex-1">
+                      <Link to={`/s/attendance/${enrollment.subjects.id}`}>
+                        <ClipboardCheck />
+                        View attendance
                       </Link>
                     </Button>
                     <Button
@@ -113,7 +157,8 @@ export default function StudentSubjectsPage() {
                   </>
                 }
               />
-            ))}
+              )
+            })}
           </div>
         )}
       </div>
