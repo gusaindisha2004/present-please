@@ -34,6 +34,20 @@ export function rateTone(rate: number): string {
 }
 
 /**
+ * A short, human line about where a student stands, to sit beside the cold
+ * percentage. Deliberately gentlest where the news is worst: someone below
+ * the line already knows it, and doesn't need a joke at their expense.
+ */
+export function attendanceRemark(rate: number): string {
+  if (rate >= 95) return "Practically part of the furniture."
+  if (rate >= 85) return "Comfortably clear. Keep it up."
+  if (rate >= REQUIRED_ATTENDANCE) return "Just above the line."
+  if (rate >= 60) return "Not far off — a few classes will do it."
+  if (rate >= 40) return "Worth a course correction this week."
+  return "Let's build this back up, one class at a time."
+}
+
+/**
  * How many further classes can be missed while staying at or above the
  * requirement. Solves P / (C + x) >= R for the largest whole x.
  * Returns 0 when even one more absence would drop them below.

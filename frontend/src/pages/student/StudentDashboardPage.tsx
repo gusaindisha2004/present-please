@@ -1,9 +1,13 @@
 import { Link } from "react-router-dom"
-import { BookOpen, CalendarClock, CalendarDays, TriangleAlert } from "lucide-react"
+import { BookOpen, CalendarClock, CalendarDays } from "lucide-react"
 
 import { useAuth } from "@/context/AuthContext"
 import { useStudentSchedule } from "@/hooks/useStudentSchedule"
-import { REQUIRED_ATTENDANCE, rateTone } from "@/lib/attendance"
+import {
+  REQUIRED_ATTENDANCE,
+  attendanceRemark,
+  rateTone,
+} from "@/lib/attendance"
 import { formatTime, toDateKey } from "@/lib/scheduling"
 import {
   STUDENT_STATUS_CLASS,
@@ -78,30 +82,11 @@ export default function StudentDashboardPage() {
         </div>
       ) : (
         <>
-          {belowRequirement && (
-            <Card className="border-warning/40 mt-6 rounded-2xl border">
-              <CardContent className="flex flex-wrap items-start justify-between gap-4">
-                <div className="flex items-start gap-2.5">
-                  <TriangleAlert className="text-warning mt-0.5 size-5 shrink-0" />
-                  <div>
-                    <p className="text-sm font-medium">
-                      Attendance needs attention
-                    </p>
-                    <p className="text-muted-foreground mt-0.5 text-sm">
-                      Your current attendance is {overall.rate}%, which is
-                      below the required {REQUIRED_ATTENDANCE}%. Attending
-                      your upcoming classes consistently will bring it up.
-                    </p>
-                  </div>
-                </div>
-                <Button asChild variant="outline" size="sm">
-                  <Link to="/s/attendance">View attendance</Link>
-                </Button>
-              </CardContent>
-            </Card>
-          )}
-
-          <Card className="mt-6 rounded-2xl">
+          <Card
+            className={`mt-6 rounded-2xl ${
+              belowRequirement ? "border-warning/40 border" : ""
+            }`}
+          >
             <CardContent>
               <div className="flex flex-wrap items-start justify-between gap-4">
                 <div>
@@ -109,9 +94,14 @@ export default function StudentDashboardPage() {
                     Overall attendance
                   </p>
                   {overall.conducted > 0 ? (
-                    <p className="mt-1 text-sm">
-                      {overall.present} / {overall.conducted} classes attended
-                    </p>
+                    <>
+                      <p className="mt-1 text-sm">
+                        {overall.present} / {overall.conducted} classes attended
+                      </p>
+                      <p className="mt-1.5 text-sm font-medium">
+                        {attendanceRemark(overall.rate)}
+                      </p>
+                    </>
                   ) : (
                     <p className="text-muted-foreground mt-1 text-sm">
                       Attendance data will appear after your classes are
@@ -131,8 +121,45 @@ export default function StudentDashboardPage() {
                 conducted={overall.conducted}
                 className="mt-4"
               />
+
+              {belowRequirement && (
+                <Button asChild variant="outline" size="sm" className="mt-4">
+                  <Link to="/s/attendance">View attendance</Link>
+                </Button>
+              )}
             </CardContent>
           </Card>
+
+          <h2 className="mt-8 text-lg font-semibold tracking-tight">
+            Subject attendance
+          </h2>
+          <div className="mt-3 grid gap-3 sm:grid-cols-2">
+            {subjects.map((subject) => {
+              const stats = statsBySubject[subject.id]
+              return (
+                <Card key={subject.id} className="rounded-2xl">
+                  <CardContent className="flex items-center justify-between gap-3">
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-medium">
+                        {subject.name}
+                      </p>
+                      <p className="text-muted-foreground mt-0.5 text-xs">
+                        {stats.conducted > 0
+                          ? `${stats.present} / ${stats.conducted} attended`
+                          : "No classes conducted yet"}
+                      </p>
+                    </div>
+                    <Link
+                      to={`/s/attendance/${subject.id}`}
+                      className={`text-lg font-semibold tabular-nums ${stats.conducted > 0 ? rateTone(stats.rate) : "text-muted-foreground"}`}
+                    >
+                      {stats.conducted > 0 ? `${stats.rate}%` : "—"}
+                    </Link>
+                  </CardContent>
+                </Card>
+              )
+            })}
+          </div>
 
           <div className="mt-8 flex items-center justify-between gap-4">
             <h2 className="text-lg font-semibold tracking-tight">
@@ -225,37 +252,6 @@ export default function StudentDashboardPage() {
                 </CardContent>
               </Card>
             )}
-          </div>
-
-          <h2 className="mt-8 text-lg font-semibold tracking-tight">
-            Subject attendance
-          </h2>
-          <div className="mt-3 grid gap-3 sm:grid-cols-2">
-            {subjects.map((subject) => {
-              const stats = statsBySubject[subject.id]
-              return (
-                <Card key={subject.id} className="rounded-2xl">
-                  <CardContent className="flex items-center justify-between gap-3">
-                    <div className="min-w-0">
-                      <p className="truncate text-sm font-medium">
-                        {subject.name}
-                      </p>
-                      <p className="text-muted-foreground mt-0.5 text-xs">
-                        {stats.conducted > 0
-                          ? `${stats.present} / ${stats.conducted} attended`
-                          : "No classes conducted yet"}
-                      </p>
-                    </div>
-                    <Link
-                      to={`/s/attendance/${subject.id}`}
-                      className={`text-lg font-semibold tabular-nums ${stats.conducted > 0 ? rateTone(stats.rate) : "text-muted-foreground"}`}
-                    >
-                      {stats.conducted > 0 ? `${stats.rate}%` : "—"}
-                    </Link>
-                  </CardContent>
-                </Card>
-              )
-            })}
           </div>
         </>
       )}
