@@ -2,6 +2,7 @@ import { useNavigate } from "react-router-dom"
 import { ArrowRight, CheckCircle2 } from "lucide-react"
 import { toast } from "sonner"
 
+import { EnrolledSubjectsCard } from "@/components/profile/EnrolledSubjectsCard"
 import { FacePhotoManager } from "@/components/profile/FacePhotoManager"
 import { VoiceEnrollmentCard } from "@/components/profile/VoiceEnrollmentCard"
 import { Button } from "@/components/ui/button"
@@ -26,6 +27,8 @@ export default function StudentProfilePage() {
           Manage the face and voice data used to recognize you for attendance.
         </p>
       </div>
+
+      <EnrolledSubjectsCard />
 
       <FacePhotoManager />
       <VoiceEnrollmentCard />

@@ -14,6 +14,7 @@ export function SubjectCard({
   name,
   code,
   section,
+  teacher,
   stats,
   meta,
   footer,
@@ -21,6 +22,8 @@ export function SubjectCard({
   name: string
   code: string
   section: string
+  /** Shown to students; teacher-facing screens leave it out. */
+  teacher?: string | null
   stats?: SubjectCardStat[]
   /** Optional label/value rows (next class, attendance) above the actions. */
   meta?: ReactNode
@@ -36,6 +39,12 @@ export function SubjectCard({
           </Badge>
           <span>Section {section}</span>
         </div>
+
+        {teacher && (
+          <p className="text-muted-foreground mt-1 text-sm">
+            Taught by {teacher}
+          </p>
+        )}
 
         {stats && stats.length > 0 && (
           <div className="mt-4 flex flex-wrap gap-2">

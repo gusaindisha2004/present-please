@@ -81,7 +81,13 @@ export default function StudentSubjectAttendancePage() {
           {subject.name}
         </h1>
         <p className="text-muted-foreground mt-1 text-sm">
-          {subject.code} · Section {subject.section}
+          {[
+            subject.code,
+            `Section ${subject.section}`,
+            subject.profiles?.full_name && `Taught by ${subject.profiles.full_name}`,
+          ]
+            .filter(Boolean)
+            .join(" · ")}
         </p>
       </div>
 

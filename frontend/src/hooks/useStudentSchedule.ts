@@ -4,7 +4,11 @@ import { supabase } from "@/lib/supabase"
 import { useAuth } from "@/context/AuthContext"
 import { attendanceRate } from "@/lib/attendance"
 import { classStart, deriveStatus } from "@/lib/scheduling"
-import type { Enrollment, ScheduledClass, Subject } from "@/types/database"
+import type {
+  Enrollment,
+  ScheduledClass,
+  SubjectWithTeacher,
+} from "@/types/database"
 
 /**
  * What a class looks like from the student's side. "completed" splits into
@@ -51,7 +55,7 @@ export interface StudentClassView {
   cancel_reason: string | null
   status: StudentClassStatus
   start: Date
-  subject: Subject
+  subject: SubjectWithTeacher
 }
 
 export interface StudentSubjectStats {
@@ -66,7 +70,7 @@ export interface StudentSubjectStats {
 export function useStudentSchedule() {
   const { profile } = useAuth()
   const [loading, setLoading] = useState(true)
-  const [subjects, setSubjects] = useState<Subject[]>([])
+  const [subjects, setSubjects] = useState<SubjectWithTeacher[]>([])
   const [classes, setClasses] = useState<StudentClassView[]>([])
   const [statsBySubject, setStatsBySubject] = useState<
     Record<string, StudentSubjectStats>
@@ -78,11 +82,12 @@ export function useStudentSchedule() {
 
     const { data: enrolmentRows } = await supabase
       .from("enrollments")
-      .select("*, subjects(*)")
+      .select("*, subjects(*, profiles(full_name))")
       .eq("student_id", profile.id)
 
     const enrolments =
-      (enrolmentRows as (Enrollment & { subjects: Subject })[] | null) ?? []
+      (enrolmentRows as (Enrollment & { subjects: SubjectWithTeacher })[] | null) ??
+      []
     const subjectList = enrolments.map((e) => e.subjects).filter(Boolean)
     const subjectIds = subjectList.map((s) => s.id)
 

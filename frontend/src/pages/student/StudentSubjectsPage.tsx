@@ -8,14 +8,14 @@ import { useAuth } from "@/context/AuthContext"
 import { useStudentSchedule } from "@/hooks/useStudentSchedule"
 import { rateTone } from "@/lib/attendance"
 import { formatTime, toDateKey } from "@/lib/scheduling"
-import type { Enrollment, Subject } from "@/types/database"
+import type { Enrollment, SubjectWithTeacher } from "@/types/database"
 import { SubjectCard } from "@/components/subjects/SubjectCard"
 import { EnrollDialog } from "@/components/subjects/EnrollDialog"
 import { BlobIllustration } from "@/components/illustrations/BlobIllustration"
 import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
 
-type EnrollmentWithSubject = Enrollment & { subjects: Subject }
+type EnrollmentWithSubject = Enrollment & { subjects: SubjectWithTeacher }
 
 export default function StudentSubjectsPage() {
   const { profile } = useAuth()
@@ -26,7 +26,7 @@ export default function StudentSubjectsPage() {
   const loadEnrollments = async (studentId: string) => {
     const { data, error } = await supabase
       .from("enrollments")
-      .select("*, subjects(*)")
+      .select("*, subjects(*, profiles(full_name))")
       .eq("student_id", studentId)
       .order("created_at", { ascending: false })
 
@@ -103,6 +103,7 @@ export default function StudentSubjectsPage() {
                 name={enrollment.subjects.name}
                 code={enrollment.subjects.code}
                 section={enrollment.subjects.section}
+                teacher={enrollment.subjects.profiles?.full_name}
                 meta={
                   <>
                     <div className="flex items-baseline justify-between gap-3 text-sm">

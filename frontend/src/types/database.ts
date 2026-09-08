@@ -25,6 +25,14 @@ export interface Subject {
   created_at: string
 }
 
+/**
+ * A subject with the teacher who runs it. Students see this rather than a
+ * bare subject: "who teaches this" is one of the first things they look for.
+ */
+export interface SubjectWithTeacher extends Subject {
+  profiles: { full_name: string } | null
+}
+
 export interface Enrollment {
   id: string
   subject_id: string
