@@ -1,4 +1,9 @@
-import type { ScheduledClass, TimetableSlot } from "@/types/database"
+import type {
+  Branch,
+  ScheduledClass,
+  TimetableSlot,
+  YearOfStudy,
+} from "@/types/database"
 
 // Upcoming / pending / completed are never stored — they're a function of
 // the clock and of whether attendance was actually taken. Only "cancelled"
@@ -32,6 +37,27 @@ export const WEEKDAYS = [
 ]
 
 export const WEEKDAYS_SHORT = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
+
+// The groups a teacher schedules for. Kept beside the other timetable
+// vocabulary so every screen offers and labels them the same way.
+export const BRANCHES: Branch[] = ["CSE", "ECE", "AIML", "AIDS", "IIOT"]
+
+export const YEARS: YearOfStudy[] = [1, 2, 3, 4]
+
+export const YEAR_LABEL: Record<YearOfStudy, string> = {
+  1: "1st year",
+  2: "2nd year",
+  3: "3rd year",
+  4: "4th year",
+}
+
+/** "CSE · 2nd year", or just whichever half is set. Empty if neither is. */
+export function groupLabel(
+  branch: Branch | null,
+  year: YearOfStudy | null
+): string {
+  return [branch, year ? YEAR_LABEL[year] : null].filter(Boolean).join(" · ")
+}
 
 /** Timetable times are wall-clock local, so build a local Date (no "Z"). */
 export function classStart(cls: {

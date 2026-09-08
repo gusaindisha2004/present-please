@@ -1,10 +1,18 @@
 import { useState } from "react"
 import { Link } from "react-router-dom"
 import { CalendarDays, ChevronLeft, ChevronRight } from "lucide-react"
+import { toast } from "sonner"
 
+import { supabase } from "@/lib/supabase"
 import { useTeacherSchedule, type ClassView } from "@/hooks/useTeacherSchedule"
-import { STATUS_CLASS, STATUS_LABEL, addDays, startOfWeek } from "@/lib/scheduling"
-import { AddSlotDialog } from "@/components/timetable/AddSlotDialog"
+import {
+  STATUS_CLASS,
+  STATUS_LABEL,
+  addDays,
+  groupLabel,
+  startOfWeek,
+} from "@/lib/scheduling"
+import { SlotDialog, type SlotEdit } from "@/components/timetable/SlotDialog"
 import {
   ClassDetailDialog,
   type ClassDetail,
@@ -23,10 +31,13 @@ function toDetail(cls: ClassView): ClassDetail {
   return {
     id: cls.id,
     subject_id: cls.subject_id,
+    slot_id: cls.slot_id,
     class_date: cls.class_date,
     start_time: cls.start_time,
     end_time: cls.end_time,
     room: cls.room,
+    branch: cls.branch,
+    year: cls.year,
     cancel_reason: cls.cancel_reason,
     status: cls.status,
     subjectName: cls.subject.name,
@@ -39,6 +50,24 @@ export default function TeacherTimetablePage() {
   const { loading, subjects, classes, reload } = useTeacherSchedule()
   const [weekStart, setWeekStart] = useState(() => startOfWeek(new Date()))
   const [selected, setSelected] = useState<ClassDetail | null>(null)
+  const [editingSlot, setEditingSlot] = useState<SlotEdit | null>(null)
+
+  // The grid works in occurrences; editing works on the weekly slot behind
+  // one, so it has to be fetched when the teacher asks to edit.
+  const openEditor = async (slotId: string) => {
+    const { data, error } = await supabase
+      .from("timetable_slots")
+      .select("*")
+      .eq("id", slotId)
+      .single()
+
+    if (error || !data) {
+      toast.error("Couldn't open that class for editing")
+      return
+    }
+    setSelected(null)
+    setEditingSlot(data as SlotEdit)
+  }
 
   return (
     <div className="mx-auto max-w-6xl py-8">
@@ -46,11 +75,11 @@ export default function TeacherTimetablePage() {
         <div>
           <h1 className="text-2xl font-semibold tracking-tight">Timetable</h1>
           <p className="text-muted-foreground mt-1 text-sm">
-            Your weekly teaching schedule. Click a class to take attendance or
-            cancel it.
+            Your weekly teaching schedule. Click a class to take attendance,
+            cancel it, or edit the weekly slot behind it.
           </p>
         </div>
-        <AddSlotDialog subjects={subjects} onCreated={reload} />
+        <SlotDialog subjects={subjects} onSaved={reload} />
       </div>
 
       <div className="mt-6 flex items-center gap-2">
@@ -99,7 +128,7 @@ export default function TeacherTimetablePage() {
         <EmptyState
           title="No classes scheduled yet"
           body="Add your weekly classes and they'll appear here, ready for attendance."
-          action={<AddSlotDialog subjects={subjects} onCreated={reload} />}
+          action={<SlotDialog subjects={subjects} onSaved={reload} />}
         />
       ) : (
         <WeekGrid
@@ -111,7 +140,13 @@ export default function TeacherTimetablePage() {
             end_time: c.end_time,
             start: c.start,
             title: c.subject.name,
-            subtitle: `${c.subject.code}${c.room ? ` · ${c.room}` : ""}`,
+            subtitle: [
+              c.subject.code,
+              groupLabel(c.branch, c.year),
+              c.room,
+            ]
+              .filter(Boolean)
+              .join(" · "),
             statusLabel: STATUS_LABEL[c.status],
             statusClass: STATUS_CLASS[c.status],
           }))}
@@ -126,7 +161,24 @@ export default function TeacherTimetablePage() {
         cls={selected}
         onOpenChange={(open) => !open && setSelected(null)}
         onChanged={reload}
+        onEditSeries={
+          selected?.slot_id
+            ? () => openEditor(selected.slot_id as string)
+            : undefined
+        }
       />
+
+      {/* Mounted only while editing — otherwise it would render a second
+          "Add class" trigger of its own. */}
+      {editingSlot && (
+        <SlotDialog
+          subjects={subjects}
+          slot={editingSlot}
+          open
+          onOpenChange={(open) => !open && setEditingSlot(null)}
+          onSaved={reload}
+        />
+      )}
     </div>
   )
 }

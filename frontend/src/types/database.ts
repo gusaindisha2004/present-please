@@ -43,6 +43,11 @@ export interface AttendanceSession {
 }
 
 // A recurring weekly slot: "Operating System, Mondays 9–10, Lab 3".
+// Which group of students sits in the room. Stored per timetable slot,
+// because one subject can be taught to several branches/years.
+export type Branch = "CSE" | "ECE" | "AIML" | "AIDS" | "IIOT"
+export type YearOfStudy = 1 | 2 | 3 | 4
+
 export interface TimetableSlot {
   id: string
   subject_id: string
@@ -50,6 +55,8 @@ export interface TimetableSlot {
   start_time: string // "09:00:00"
   end_time: string
   room: string | null
+  branch: Branch | null
+  year: YearOfStudy | null
   created_at: string
 }
 
@@ -63,6 +70,8 @@ export interface ScheduledClass {
   start_time: string
   end_time: string
   room: string | null
+  branch: Branch | null
+  year: YearOfStudy | null
   status: "scheduled" | "cancelled"
   cancel_reason: string | null
   created_at: string

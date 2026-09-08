@@ -1,17 +1,27 @@
 import { useState } from "react"
 import { useNavigate } from "react-router-dom"
-import { CalendarX2, Loader2, MapPin, ScanFace } from "lucide-react"
+import {
+  CalendarX2,
+  Loader2,
+  MapPin,
+  Pencil,
+  ScanFace,
+  Trash2,
+} from "lucide-react"
 import { toast } from "sonner"
 
 import { supabase } from "@/lib/supabase"
 import {
   CANCEL_REASONS,
+  WEEKDAYS,
+  groupLabel,
   STATUS_CLASS,
   STATUS_LABEL,
   classStart,
   formatTime,
   type ClassStatus,
 } from "@/lib/scheduling"
+import type { Branch, YearOfStudy } from "@/types/database"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
@@ -34,10 +44,14 @@ import {
 export interface ClassDetail {
   id: string
   subject_id: string
+  /** The weekly slot this class came from — null for an ad-hoc class. */
+  slot_id: string | null
   class_date: string
   start_time: string
   end_time: string
   room: string | null
+  branch: Branch | null
+  year: YearOfStudy | null
   cancel_reason: string | null
   status: ClassStatus
   subjectName: string
@@ -55,20 +69,96 @@ export function ClassDetailDialog({
   cls,
   onOpenChange,
   onChanged,
+  onEditSeries,
 }: {
   cls: ClassDetail | null
   onOpenChange: (open: boolean) => void
   onChanged: () => void
+  /** Provided by screens that can edit the timetable; omit to hide the
+   *  weekly-series actions entirely. */
+  onEditSeries?: () => void
 }) {
   const navigate = useNavigate()
   const [confirmingCancel, setConfirmingCancel] = useState(false)
+  const [confirmingDelete, setConfirmingDelete] = useState(false)
   const [reason, setReason] = useState("")
   const [saving, setSaving] = useState(false)
 
   const close = () => {
     setConfirmingCancel(false)
+    setConfirmingDelete(false)
     setReason("")
     onOpenChange(false)
+  }
+
+  /**
+   * Remove the weekly class and every one of its dates that never had
+   * attendance taken. Classes that were actually conducted are kept — they
+   * simply stop belonging to a series — so no attendance record is ever
+   * destroyed by tidying up a timetable.
+   */
+  const handleDeleteSeries = async () => {
+    if (!cls?.slot_id) return
+    setSaving(true)
+
+    const { data: occRows, error: occError } = await supabase
+      .from("scheduled_classes")
+      .select("id")
+      .eq("slot_id", cls.slot_id)
+
+    if (occError) {
+      setSaving(false)
+      toast.error("Couldn't remove the class")
+      return
+    }
+
+    const occIds = ((occRows as { id: string }[] | null) ?? []).map((o) => o.id)
+
+    const { data: sessionRows } = occIds.length
+      ? await supabase
+          .from("attendance_sessions")
+          .select("scheduled_class_id")
+          .in("scheduled_class_id", occIds)
+      : { data: [] }
+
+    const taken = new Set(
+      ((sessionRows as { scheduled_class_id: string }[] | null) ?? []).map(
+        (s) => s.scheduled_class_id
+      )
+    )
+    const removable = occIds.filter((id) => !taken.has(id))
+
+    if (removable.length) {
+      const { error } = await supabase
+        .from("scheduled_classes")
+        .delete()
+        .in("id", removable)
+      if (error) {
+        setSaving(false)
+        toast.error("Couldn't remove the scheduled dates")
+        return
+      }
+    }
+
+    const { error } = await supabase
+      .from("timetable_slots")
+      .delete()
+      .eq("id", cls.slot_id)
+
+    setSaving(false)
+
+    if (error) {
+      toast.error("Couldn't remove the class from your timetable")
+      return
+    }
+
+    toast.success("Removed from your timetable", {
+      description: taken.size
+        ? `${taken.size} class${taken.size === 1 ? "" : "es"} with attendance already taken ${taken.size === 1 ? "was" : "were"} kept.`
+        : "All of its scheduled dates were removed.",
+    })
+    close()
+    onChanged()
   }
 
   const handleCancel = async () => {
@@ -109,8 +199,15 @@ export function ClassDetailDialog({
             <DialogHeader>
               <DialogTitle>Cancel class?</DialogTitle>
               <DialogDescription>
-                {cls.subjectName} · {dayFormatter.format(classStart(cls))} ·{" "}
-                {formatTime(cls.start_time)} · Section {cls.subjectSection}
+                {[
+                  cls.subjectName,
+                  groupLabel(cls.branch, cls.year),
+                  dayFormatter.format(classStart(cls)),
+                  formatTime(cls.start_time),
+                  `Section ${cls.subjectSection}`,
+                ]
+                  .filter(Boolean)
+                  .join(" · ")}
               </DialogDescription>
             </DialogHeader>
 
@@ -152,12 +249,58 @@ export function ClassDetailDialog({
               </Button>
             </DialogFooter>
           </>
+        ) : confirmingDelete ? (
+          <>
+            <DialogHeader>
+              <DialogTitle>Remove this weekly class?</DialogTitle>
+              <DialogDescription>
+                {[
+                  cls.subjectName,
+                  groupLabel(cls.branch, cls.year),
+                  `${WEEKDAYS[classStart(cls).getDay()]}s`,
+                  formatTime(cls.start_time),
+                ]
+                  .filter(Boolean)
+                  .join(" · ")}
+              </DialogDescription>
+            </DialogHeader>
+
+            <p className="text-muted-foreground text-sm">
+              This takes the class off your timetable and removes every date
+              that never had attendance taken. Classes you already marked are
+              kept, along with their attendance records.
+            </p>
+
+            <DialogFooter>
+              <Button
+                variant="outline"
+                onClick={() => setConfirmingDelete(false)}
+                disabled={saving}
+              >
+                Keep it
+              </Button>
+              <Button
+                variant="destructive"
+                onClick={handleDeleteSeries}
+                disabled={saving}
+              >
+                {saving && <Loader2 className="animate-spin" />}
+                Remove class
+              </Button>
+            </DialogFooter>
+          </>
         ) : (
           <>
             <DialogHeader>
               <DialogTitle>{cls.subjectName}</DialogTitle>
               <DialogDescription>
-                {cls.subjectCode} · Section {cls.subjectSection}
+                {[
+                  cls.subjectCode,
+                  groupLabel(cls.branch, cls.year),
+                  `Section ${cls.subjectSection}`,
+                ]
+                  .filter(Boolean)
+                  .join(" · ")}
               </DialogDescription>
             </DialogHeader>
 
@@ -192,6 +335,27 @@ export function ClassDetailDialog({
                 <p className="text-muted-foreground text-sm">
                   Attendance can be taken once the class has started.
                 </p>
+              )}
+
+              {cls.slot_id && onEditSeries && (
+                <div className="flex flex-wrap items-center gap-1 border-t pt-3">
+                  <p className="text-muted-foreground mr-auto text-xs">
+                    Repeats weekly
+                  </p>
+                  <Button variant="ghost" size="sm" onClick={onEditSeries}>
+                    <Pencil />
+                    Edit
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="text-destructive hover:bg-destructive/10 hover:text-destructive"
+                    onClick={() => setConfirmingDelete(true)}
+                  >
+                    <Trash2 />
+                    Remove
+                  </Button>
+                </div>
               )}
             </div>
 

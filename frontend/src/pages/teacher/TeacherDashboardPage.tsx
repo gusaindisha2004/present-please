@@ -14,6 +14,7 @@ import {
   STATUS_CLASS,
   STATUS_LABEL,
   formatTime,
+  groupLabel,
   toDateKey,
 } from "@/lib/scheduling"
 import { rateTone } from "@/lib/attendance"
@@ -37,10 +38,13 @@ function toDetail(cls: ClassView): ClassDetail {
   return {
     id: cls.id,
     subject_id: cls.subject_id,
+    slot_id: cls.slot_id,
     class_date: cls.class_date,
     start_time: cls.start_time,
     end_time: cls.end_time,
     room: cls.room,
+    branch: cls.branch,
+    year: cls.year,
     cancel_reason: cls.cancel_reason,
     status: cls.status,
     subjectName: cls.subject.name,
@@ -180,8 +184,14 @@ export default function TeacherDashboardPage() {
                         {cls.subject.name}
                       </p>
                       <p className="text-muted-foreground truncate text-xs">
-                        {cls.subject.code} · Section {cls.subject.section}
-                        {cls.room ? ` · ${cls.room}` : ""}
+                        {[
+                          cls.subject.code,
+                          groupLabel(cls.branch, cls.year),
+                          `Section ${cls.subject.section}`,
+                          cls.room,
+                        ]
+                          .filter(Boolean)
+                          .join(" · ")}
                       </p>
                     </div>
                   </div>

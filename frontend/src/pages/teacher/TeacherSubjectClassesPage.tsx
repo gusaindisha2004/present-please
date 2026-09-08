@@ -18,6 +18,7 @@ import {
   classStart,
   deriveStatus,
   formatTime,
+  groupLabel,
   type ClassStatus,
 } from "@/lib/scheduling"
 import type { AttendanceMethod, ScheduledClass, Subject } from "@/types/database"
@@ -244,6 +245,18 @@ export default function TeacherSubjectClassesPage() {
                             present
                           </Badge>
                         )}
+                        {row.scheduled &&
+                          groupLabel(
+                            row.scheduled.branch,
+                            row.scheduled.year
+                          ) && (
+                            <Badge variant="outline">
+                              {groupLabel(
+                                row.scheduled.branch,
+                                row.scheduled.year
+                              )}
+                            </Badge>
+                          )}
                         {!row.scheduled && (
                           <Badge variant="outline">Not on timetable</Badge>
                         )}
@@ -280,10 +293,13 @@ export default function TeacherSubjectClassesPage() {
                           setSelected({
                             id: row.scheduled!.id,
                             subject_id: row.scheduled!.subject_id,
+                            slot_id: row.scheduled!.slot_id,
                             class_date: row.scheduled!.class_date,
                             start_time: row.scheduled!.start_time,
                             end_time: row.scheduled!.end_time,
                             room: row.scheduled!.room,
+                            branch: row.scheduled!.branch,
+                            year: row.scheduled!.year,
                             cancel_reason: row.scheduled!.cancel_reason,
                             status: row.status,
                             subjectName: subject.name,

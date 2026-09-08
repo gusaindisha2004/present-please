@@ -3,17 +3,25 @@ import { useCallback, useEffect, useState } from "react"
 import { supabase } from "@/lib/supabase"
 import { useAuth } from "@/context/AuthContext"
 import { classStart, deriveStatus, type ClassStatus } from "@/lib/scheduling"
-import type { ScheduledClass, Subject } from "@/types/database"
+import type {
+  Branch,
+  ScheduledClass,
+  Subject,
+  YearOfStudy,
+} from "@/types/database"
 
 export type SubjectWithCount = Subject & { enrollments: { count: number }[] }
 
 export interface ClassView {
   id: string
   subject_id: string
+  slot_id: string | null
   class_date: string
   start_time: string
   end_time: string
   room: string | null
+  branch: Branch | null
+  year: YearOfStudy | null
   cancel_reason: string | null
   status: ClassStatus
   start: Date
@@ -99,10 +107,13 @@ export function useTeacherSchedule() {
       .map((row) => ({
         id: row.id,
         subject_id: row.subject_id,
+        slot_id: row.slot_id,
         class_date: row.class_date,
         start_time: row.start_time,
         end_time: row.end_time,
         room: row.room,
+        branch: row.branch,
+        year: row.year,
         cancel_reason: row.cancel_reason,
         status: deriveStatus(row, completedClassIds.has(row.id), now),
         start: classStart(row),
