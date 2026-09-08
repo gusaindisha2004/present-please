@@ -38,10 +38,14 @@ export default function LandingPage() {
       </header>
 
       <main>
-        <section className="relative mx-auto max-w-6xl px-6 pt-8 pb-20 sm:px-10 sm:pt-12">
-          <DotGridBackground className="-z-10" />
+        {/* Full-bleed so the dot grid and colour blobs reach the edges of the
+            viewport; only the content inside is constrained. The decoration
+            starts above the section so it runs behind the header instead of
+            drawing a hard seam across the page under it. */}
+        <section className="relative">
+          <DotGridBackground className="-top-28 -z-10" />
 
-          <div className="grid items-center gap-14 lg:grid-cols-[1.05fr_1fr] lg:gap-10">
+          <div className="mx-auto grid max-w-6xl items-center gap-14 px-6 pt-8 pb-20 sm:px-10 sm:pt-12 lg:grid-cols-[1.05fr_1fr] lg:gap-10">
             <div className="text-center lg:text-left">
               <Badge
                 variant="outline"
@@ -95,7 +99,10 @@ export default function LandingPage() {
           </div>
         </section>
 
-        <section id="get-started" className="mx-auto max-w-5xl scroll-mt-10 px-6 pb-20 sm:px-10">
+        <section
+          id="get-started"
+          className="mx-auto max-w-5xl scroll-mt-10 px-6 pt-16 pb-20 sm:px-10 sm:pt-24"
+        >
           <div className="text-center">
             <h2 className="text-2xl font-semibold tracking-tight sm:text-3xl">
               Choose your role to get started
@@ -134,7 +141,7 @@ export default function LandingPage() {
       <footer className="border-border/60 flex items-center justify-center gap-2 border-t px-6 py-8">
         <Logo wordmark={false} markClassName="size-5 rounded-md" />
         <p className="text-muted-foreground text-xs">
-          Built as a portfolio project.
+          Built by Disha Gusain as a portfolio project.
         </p>
       </footer>
     </div>
