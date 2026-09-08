@@ -4,7 +4,13 @@ import { ArrowLeft, ClipboardList } from "lucide-react"
 
 import { supabase } from "@/lib/supabase"
 import { useAuth } from "@/context/AuthContext"
-import { METHOD_ICON, METHOD_LABEL, dateFormatter } from "@/lib/attendance"
+import {
+  METHOD_ICON,
+  METHOD_LABEL,
+  attendanceRate,
+  dateFormatter,
+  rateTone,
+} from "@/lib/attendance"
 import type { AttendanceMethod, Subject } from "@/types/database"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent } from "@/components/ui/card"
@@ -52,6 +58,9 @@ export default function StudentAttendanceHistoryPage() {
       })
   }, [subjectId, profile])
 
+  const attendedCount = records?.filter((r) => r.is_present).length ?? 0
+  const rate = attendanceRate(attendedCount, records?.length ?? 0)
+
   return (
     <div className="mx-auto max-w-2xl py-8">
       <Link
@@ -71,7 +80,36 @@ export default function StudentAttendanceHistoryPage() {
         </p>
       </div>
 
-      <div className="mt-8 space-y-3">
+      {records !== null && records.length > 0 && (
+        <Card className="mt-6 rounded-2xl">
+          <CardContent className="flex flex-wrap items-center justify-between gap-4">
+            <div>
+              <p className="text-muted-foreground text-sm">
+                Your attendance in this subject
+              </p>
+              <p className="mt-1 text-sm">
+                Present for <strong>{attendedCount}</strong> of{" "}
+                <strong>{records.length}</strong>{" "}
+                {records.length === 1 ? "session" : "sessions"}
+              </p>
+            </div>
+            <div className="text-right">
+              <p
+                className={`text-3xl font-semibold tabular-nums ${rateTone(rate)}`}
+              >
+                {rate}%
+              </p>
+              {rate < 75 && (
+                <p className="text-muted-foreground text-xs">
+                  below the usual 75% mark
+                </p>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      <div className="mt-6 space-y-3">
         {records === null ? (
           <>
             <Skeleton className="h-16 rounded-2xl" />
