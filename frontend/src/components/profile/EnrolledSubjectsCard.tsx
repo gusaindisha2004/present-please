@@ -7,7 +7,14 @@ import { useAuth } from "@/context/AuthContext"
 import type { Enrollment, SubjectWithTeacher } from "@/types/database"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent } from "@/components/ui/card"
+import {
+  Card,
+  CardAction,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
 
 type EnrollmentWithSubject = Enrollment & { subjects: SubjectWithTeacher }
@@ -39,47 +46,60 @@ export function EnrolledSubjectsCard() {
 
   return (
     <Card className="rounded-2xl">
-      <CardContent>
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div>
-            <h2 className="font-semibold tracking-tight">Your subjects</h2>
-            <p className="text-muted-foreground mt-0.5 text-sm">
-              The subjects you're enrolled in and who teaches them.
-            </p>
-          </div>
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <BookOpen className="text-primary size-5" />
+          Your subjects
+        </CardTitle>
+        <CardDescription>
+          The subjects you're enrolled in and who teaches them.
+        </CardDescription>
+        <CardAction>
           <Button asChild variant="outline" size="sm">
             <Link to="/s/subjects">Manage</Link>
           </Button>
-        </div>
+        </CardAction>
+      </CardHeader>
 
+      <CardContent>
         {rows === null ? (
-          <Skeleton className="mt-4 h-16 rounded-xl" />
+          <Skeleton className="h-14 rounded-xl" />
         ) : rows.length === 0 ? (
-          <div className="text-muted-foreground mt-4 flex items-center gap-2 text-sm">
-            <BookOpen className="size-4 shrink-0" />
+          <p className="text-muted-foreground text-sm">
             You're not enrolled in any subjects yet.
-          </div>
+          </p>
         ) : (
-          <ul className="divide-border/60 mt-4 divide-y">
-            {rows.map(({ id, subjects }) => (
+          <ol className="divide-border/60 divide-y">
+            {/* Rows don't wrap: a long subject name ellipsizes rather than
+                shunting its code onto a line of its own. */}
+            {rows.map(({ id, subjects }, index) => (
               <li
                 key={id}
-                className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1 py-3 first:pt-0 last:pb-0"
+                className="flex items-center justify-between gap-3 py-3 first:pt-0 last:pb-0"
               >
-                <div className="min-w-0">
-                  <p className="truncate text-sm font-medium">{subjects.name}</p>
-                  <p className="text-muted-foreground mt-0.5 truncate text-sm">
-                    {subjects.profiles?.full_name
-                      ? `Taught by ${subjects.profiles.full_name}`
-                      : "Teacher not listed"}
-                  </p>
+                <div className="flex min-w-0 items-baseline gap-2.5">
+                  {/* min-w rather than a fixed width, so a tenth subject
+                      doesn't shunt the names out of alignment. */}
+                  <span className="text-muted-foreground min-w-4 shrink-0 text-sm tabular-nums">
+                    {index + 1}.
+                  </span>
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-medium">
+                      {subjects.name}
+                    </p>
+                    <p className="text-muted-foreground mt-0.5 truncate text-sm">
+                      {subjects.profiles?.full_name
+                        ? `Taught by ${subjects.profiles.full_name}`
+                        : "Teacher not listed"}
+                    </p>
+                  </div>
                 </div>
                 <Badge variant="outline" className="font-mono">
                   {subjects.code}
                 </Badge>
               </li>
             ))}
-          </ul>
+          </ol>
         )}
       </CardContent>
     </Card>
