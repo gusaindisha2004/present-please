@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react"
-import { ScanFace, Plus, Trash2, Loader2 } from "lucide-react"
+import { ScanFace, Plus, Trash2, Loader2, CheckCircle2 } from "lucide-react"
 import { toast } from "sonner"
 
 import { apiFetch, ApiError } from "@/lib/api"
@@ -164,6 +164,18 @@ export function FacePhotoManager() {
               No photos yet. Add one to enable face sign-in and attendance.
             </p>
           </div>
+        )}
+
+        {/* Photos upload the moment they're picked, so there's no submit
+            step to offer — but saying nothing leaves people unsure whether
+            their work stuck. State it plainly instead. */}
+        {photos !== null && photos.length > 0 && (
+          <p className="text-success mt-4 flex items-center gap-1.5 text-sm font-medium">
+            <CheckCircle2 className="size-4" />
+            {uploading
+              ? "Saving…"
+              : `Saved — ${photos.length} photo${photos.length > 1 ? "s" : ""} on your profile`}
+          </p>
         )}
       </CardContent>
     </Card>
