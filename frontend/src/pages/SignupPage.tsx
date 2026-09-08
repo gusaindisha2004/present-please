@@ -58,11 +58,17 @@ export default function SignupPage() {
   const [submitting, setSubmitting] = useState(false)
   const [awaitingConfirmation, setAwaitingConfirmation] = useState(false)
 
+  // Same rule as the sign-in page: only skip the form when the signed-in
+  // account is already this role. Someone signed in as a teacher who asks
+  // for the student sign-up gets the form, not a silent bounce to /t.
+  const signedInAsOtherRole =
+    !authLoading && !!user && !!profile && profile.role !== role
+
   useEffect(() => {
-    if (!authLoading && user && profile) {
+    if (!authLoading && user && profile && profile.role === role) {
       navigate(profile.role === "teacher" ? "/t" : "/s", { replace: true })
     }
-  }, [authLoading, user, profile, navigate])
+  }, [authLoading, user, profile, role, navigate])
 
   const schema = role === "student" ? studentSchema : teacherSchema
   const form = useForm<z.infer<typeof studentSchema>>({
@@ -169,6 +175,20 @@ export default function SignupPage() {
             Sign up as a {role === "teacher" ? "student" : "teacher"}
           </Link>
         </p>
+
+        {signedInAsOtherRole && profile && (
+          <p className="bg-accent text-accent-foreground mt-4 rounded-lg px-3 py-2 text-sm">
+            You're signed in as a {profile.role}. Creating an account here
+            signs you out of that one, or{" "}
+            <Link
+              to={profile.role === "teacher" ? "/t" : "/s"}
+              className="text-primary underline-offset-4 hover:underline"
+            >
+              go to your dashboard
+            </Link>
+            .
+          </p>
+        )}
       </div>
 
       <Form {...form}>

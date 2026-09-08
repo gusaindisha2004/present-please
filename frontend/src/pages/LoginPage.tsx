@@ -36,11 +36,19 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false)
   const [submitting, setSubmitting] = useState(false)
 
+  // Already signed in as this kind of user — skip the form and go to their
+  // dashboard. If the signed-in account is the *other* role, don't redirect:
+  // the visitor explicitly asked for this role's sign-in, and silently
+  // bouncing them to the other dashboard just looks broken. Show the form so
+  // they can sign in with the other account instead.
+  const signedInAsOtherRole =
+    !authLoading && !!user && !!profile && profile.role !== role
+
   useEffect(() => {
-    if (!authLoading && user && profile) {
+    if (!authLoading && user && profile && profile.role === role) {
       navigate(profile.role === "teacher" ? "/t" : "/s", { replace: true })
     }
-  }, [authLoading, user, profile, navigate])
+  }, [authLoading, user, profile, role, navigate])
 
   const form = useForm<z.infer<typeof loginSchema>>({
     resolver: zodResolver(loginSchema),
@@ -110,6 +118,20 @@ export default function LoginPage() {
             Switch to {role === "teacher" ? "student" : "teacher"} sign in
           </Link>
         </p>
+
+        {signedInAsOtherRole && profile && (
+          <p className="bg-accent text-accent-foreground mt-4 rounded-lg px-3 py-2 text-sm">
+            You're signed in as a {profile.role}. Sign in below to switch
+            accounts, or{" "}
+            <Link
+              to={profile.role === "teacher" ? "/t" : "/s"}
+              className="text-primary underline-offset-4 hover:underline"
+            >
+              go to your dashboard
+            </Link>
+            .
+          </p>
+        )}
       </div>
 
       {role === "student" ? (
