@@ -14,6 +14,7 @@ import type { Enrollment, ScheduledClass, Subject } from "@/types/database"
  */
 export type StudentClassStatus =
   | "upcoming"
+  | "in_progress"
   | "pending"
   | "present"
   | "absent"
@@ -22,6 +23,7 @@ export type StudentClassStatus =
 
 export const STUDENT_STATUS_LABEL: Record<StudentClassStatus, string> = {
   upcoming: "Upcoming",
+  in_progress: "In progress",
   pending: "Attendance pending",
   present: "Present",
   absent: "Absent",
@@ -31,6 +33,7 @@ export const STUDENT_STATUS_LABEL: Record<StudentClassStatus, string> = {
 
 export const STUDENT_STATUS_CLASS: Record<StudentClassStatus, string> = {
   upcoming: "bg-accent text-accent-foreground",
+  in_progress: "bg-primary/10 text-primary",
   pending: "bg-warning/15 text-warning",
   present: "bg-success/15 text-success",
   absent: "bg-destructive/15 text-destructive",
@@ -137,7 +140,12 @@ export function useStudentSchedule() {
         const base = deriveStatus(row, !!session, now)
 
         let status: StudentClassStatus
-        if (base === "cancelled" || base === "upcoming" || base === "pending") {
+        if (
+          base === "cancelled" ||
+          base === "upcoming" ||
+          base === "in_progress" ||
+          base === "pending"
+        ) {
           status = base
         } else if (session && myRecordBySession.has(session.id)) {
           status = myRecordBySession.get(session.id) ? "present" : "absent"

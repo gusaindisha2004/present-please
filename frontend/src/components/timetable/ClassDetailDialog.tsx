@@ -12,6 +12,7 @@ import { toast } from "sonner"
 
 import { supabase } from "@/lib/supabase"
 import {
+  ATTENDANCE_WINDOW_HOURS,
   CANCEL_REASONS,
   WEEKDAYS,
   groupLabel,
@@ -19,6 +20,7 @@ import {
   STATUS_LABEL,
   classStart,
   formatTime,
+  isAttendanceOpen,
   type ClassStatus,
 } from "@/lib/scheduling"
 import type { Branch, YearOfStudy } from "@/types/database"
@@ -186,10 +188,14 @@ export function ClassDetailDialog({
 
   if (!cls) return null
 
-  // Attendance is only offered once the class is actually due — a future
-  // class shouldn't be markable.
-  const canTakeAttendance = cls.status === "pending"
-  const canCancel = cls.status === "upcoming"
+  // Attendance is offered from the moment the class starts until a day
+  // after it ends — a future class shouldn't be markable, and a class from
+  // weeks ago shouldn't still be quietly markable either.
+  const canTakeAttendance = isAttendanceOpen(cls, cls.status)
+  const windowClosed = cls.status === "pending" && !canTakeAttendance
+  // A class already under way can still be called off — someone deciding at
+  // five past that nobody turned up is exactly when this gets used.
+  const canCancel = cls.status === "upcoming" || cls.status === "in_progress"
 
   return (
     <Dialog open={!!cls} onOpenChange={(next) => !next && close()}>
@@ -334,6 +340,12 @@ export function ClassDetailDialog({
               {cls.status === "upcoming" && (
                 <p className="text-muted-foreground text-sm">
                   Attendance can be taken once the class has started.
+                </p>
+              )}
+
+              {windowClosed && (
+                <p className="text-muted-foreground text-sm">
+                  {`Attendance was never taken, and the ${ATTENDANCE_WINDOW_HOURS}-hour window for marking it has closed.`}
                 </p>
               )}
 

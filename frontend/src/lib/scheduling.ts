@@ -9,10 +9,16 @@ import type {
 // the clock and of whether attendance was actually taken. Only "cancelled"
 // is a real stored decision. Deriving the rest here keeps every screen
 // agreeing with itself and with reality.
-export type ClassStatus = "upcoming" | "pending" | "completed" | "cancelled"
+export type ClassStatus =
+  | "upcoming"
+  | "in_progress"
+  | "pending"
+  | "completed"
+  | "cancelled"
 
 export const STATUS_LABEL: Record<ClassStatus, string> = {
   upcoming: "Upcoming",
+  in_progress: "In progress",
   pending: "Attendance pending",
   completed: "Completed",
   cancelled: "Cancelled",
@@ -21,6 +27,7 @@ export const STATUS_LABEL: Record<ClassStatus, string> = {
 // Subtle, not shouty — matches the existing badge treatment elsewhere.
 export const STATUS_CLASS: Record<ClassStatus, string> = {
   upcoming: "bg-accent text-accent-foreground",
+  in_progress: "bg-primary/10 text-primary",
   pending: "bg-warning/15 text-warning",
   completed: "bg-success/15 text-success",
   cancelled: "bg-muted text-muted-foreground line-through",
@@ -78,9 +85,38 @@ export function deriveStatus(
 ): ClassStatus {
   if (cls.status === "cancelled") return "cancelled"
   if (hasSession) return "completed"
-  // Once the slot's end time has passed and nobody took attendance, it's
-  // pending — surfaced, never silently hidden.
-  return classEnd(cls) <= now ? "pending" : "upcoming"
+  if (now < classStart(cls)) return "upcoming"
+  // Between the bells. Worth its own status: a class happening right now is
+  // neither still upcoming nor yet overdue, and it is the moment attendance
+  // is most likely to be taken.
+  if (now <= classEnd(cls)) return "in_progress"
+  // The end time has passed and nobody took attendance, so it's pending —
+  // surfaced, never silently hidden.
+  return "pending"
+}
+
+/** How long after a class ends attendance can still be taken. */
+export const ATTENDANCE_WINDOW_HOURS = 24
+
+/**
+ * Attendance opens when the class starts and stays open for a day after it
+ * ends — long enough to mark a class you were too busy to mark in the room,
+ * without leaving every past class markable forever.
+ *
+ * Deliberately separate from deriveStatus: whether you *can* mark a class is
+ * a different question from what the class *is*, and a class whose window has
+ * closed unmarked is still "attendance pending", never "absent".
+ */
+export function isAttendanceOpen(
+  cls: Pick<ScheduledClass, "class_date" | "start_time" | "end_time">,
+  status: ClassStatus,
+  now: Date = new Date()
+): boolean {
+  if (status === "cancelled" || status === "completed") return false
+  const closesAt = new Date(
+    classEnd(cls).getTime() + ATTENDANCE_WINDOW_HOURS * 60 * 60 * 1000
+  )
+  return classStart(cls) <= now && now <= closesAt
 }
 
 /** "09:00:00" -> "9:00 AM" */

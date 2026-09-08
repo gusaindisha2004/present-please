@@ -19,6 +19,7 @@ import {
   deriveStatus,
   formatTime,
   groupLabel,
+  isAttendanceOpen,
   type ClassStatus,
 } from "@/lib/scheduling"
 import type { AttendanceMethod, ScheduledClass, Subject } from "@/types/database"
@@ -276,7 +277,7 @@ export default function TeacherSubjectClassesPage() {
                   </button>
 
                   <div className="flex items-center gap-2">
-                    {row.status === "pending" && row.scheduled && (
+                    {row.scheduled && isAttendanceOpen(row.scheduled, row.status) && (
                       <Button asChild size="sm">
                         <Link
                           to={`/t/attendance/${row.scheduled.subject_id}?classId=${row.scheduled.id}`}

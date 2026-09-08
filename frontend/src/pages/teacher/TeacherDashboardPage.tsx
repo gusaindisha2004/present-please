@@ -15,6 +15,7 @@ import {
   STATUS_LABEL,
   formatTime,
   groupLabel,
+  isAttendanceOpen,
   toDateKey,
 } from "@/lib/scheduling"
 import { rateTone } from "@/lib/attendance"
@@ -200,7 +201,7 @@ export default function TeacherDashboardPage() {
                     <Badge className={STATUS_CLASS[cls.status]}>
                       {STATUS_LABEL[cls.status]}
                     </Badge>
-                    {cls.status === "pending" ? (
+                    {isAttendanceOpen(cls, cls.status) ? (
                       <Button asChild size="sm">
                         <Link
                           to={`/t/attendance/${cls.subject_id}?classId=${cls.id}`}
