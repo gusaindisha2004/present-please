@@ -4,6 +4,7 @@ import { toast } from "sonner"
 
 import { apiFetch, ApiError } from "@/lib/api"
 import { useAudioRecorder } from "@/hooks/useAudioRecorder"
+import { useAuth } from "@/context/AuthContext"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
@@ -14,10 +15,23 @@ interface VoiceStatus {
 }
 
 export function VoiceEnrollmentCard() {
+  const { profile } = useAuth()
   const [status, setStatus] = useState<VoiceStatus | null>(null)
   const [submitting, setSubmitting] = useState(false)
   const [deleting, setDeleting] = useState(false)
   const recorder = useAudioRecorder()
+
+  // A fixed enrolment passage, read by every student. Two things make a
+  // voice profile reliable, and both come down to the audio we capture
+  // rather than anything in the pipeline: length, and variety of sounds.
+  // The encoder averages its embedding over the whole utterance, so ~15
+  // seconds of ordinary, phonetically varied speech gives a far more
+  // stable profile than one short phrase.
+  const scriptLines = [
+    `Hello, my name is ${profile?.full_name || "..."}, and I am present in class today.`,
+    "I am recording my voice so that my teacher can mark my attendance.",
+    "I will attend my classes regularly and always try to be on time.",
+  ]
 
   const loadStatus = async () => {
     try {
@@ -75,11 +89,48 @@ export function VoiceEnrollmentCard() {
           Voice profile
         </CardTitle>
         <CardDescription>
-          Optional — record yourself saying "I am present" for voice
-          roll-call attendance.
+          Optional — read the short passage below so your teacher can take
+          attendance by voice roll-call.
         </CardDescription>
       </CardHeader>
       <CardContent>
+        {status !== null && !recorder.wavBlob && (
+          <div className="mb-5">
+            <div className="flex items-baseline justify-between gap-3">
+              <p className="text-xs font-medium tracking-wide uppercase">
+                Read all three lines out loud
+              </p>
+              <span className="text-muted-foreground text-xs">
+                takes about 15 seconds
+              </span>
+            </div>
+
+            <blockquote className="bg-accent text-accent-foreground border-primary/40 mt-2 space-y-2 rounded-lg border-l-2 px-4 py-3 text-base font-medium">
+              {scriptLines.map((line, i) => (
+                <p key={i} className="text-balance">
+                  <span className="text-muted-foreground mr-2 text-sm tabular-nums">
+                    {i + 1}.
+                  </span>
+                  {line}
+                </p>
+              ))}
+            </blockquote>
+
+            <ul className="text-muted-foreground mt-3 space-y-1 text-sm">
+              <li>
+                • Read <strong>all three lines</strong> — the more it hears,
+                the better it learns your voice.
+              </li>
+              <li>
+                • Speak naturally, at normal volume, somewhere quiet.
+              </li>
+              <li>
+                • Press Stop when you finish the last line.
+              </li>
+            </ul>
+          </div>
+        )}
+
         {status === null ? (
           <Skeleton className="h-20 rounded-xl" />
         ) : recorder.wavBlob ? (
@@ -109,7 +160,9 @@ export function VoiceEnrollmentCard() {
                 <span className="bg-destructive/10 text-destructive flex size-16 items-center justify-center rounded-full">
                   <span className="bg-destructive size-3 animate-pulse rounded-full" />
                 </span>
-                <p className="text-muted-foreground text-sm">Recording… say a short phrase</p>
+                <p className="text-muted-foreground text-sm">
+                  Recording… read all three lines above, then press Stop
+                </p>
                 <Button variant="outline" onClick={recorder.stop}>
                   <Square className="fill-current" />
                   Stop
@@ -148,7 +201,7 @@ export function VoiceEnrollmentCard() {
                   <Mic className="size-7" />
                 </span>
                 <p className="text-muted-foreground max-w-xs text-sm text-balance">
-                  No voice profile yet. Record a short phrase to enable
+                  No voice profile yet. Read the lines above to enable
                   voice roll-call.
                 </p>
                 <Button onClick={recorder.start}>

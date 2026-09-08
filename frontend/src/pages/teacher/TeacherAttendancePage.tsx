@@ -301,8 +301,9 @@ export default function TeacherAttendancePage() {
                       <span className="bg-destructive/10 text-destructive flex size-16 items-center justify-center rounded-full">
                         <span className="bg-destructive size-3 animate-pulse rounded-full" />
                       </span>
-                      <p className="text-muted-foreground text-sm">
-                        Recording… capture the roll call
+                      <p className="text-muted-foreground max-w-sm text-sm text-balance">
+                        Recording… one student at a time, each answering in
+                        a full sentence, with a pause in between.
                       </p>
                       <Button variant="outline" onClick={recorder.stop}>
                         <Square className="fill-current" />
@@ -335,8 +336,12 @@ export default function TeacherAttendancePage() {
                       <span className="bg-accent text-accent-foreground flex size-16 items-center justify-center rounded-full">
                         <Mic className="size-7" />
                       </span>
-                      <p className="text-muted-foreground max-w-xs text-sm text-balance">
-                        Record students saying their names one at a time.
+                      <p className="text-muted-foreground max-w-sm text-sm text-balance">
+                        Call the roll one student at a time. Ask each to
+                        answer in a full sentence — "My name is [name] and
+                        I am present" — rather than a single word, and
+                        leave a clear pause before the next student, since
+                        the recording is split on silence.
                       </p>
                       <Button onClick={recorder.start}>
                         <Mic />
