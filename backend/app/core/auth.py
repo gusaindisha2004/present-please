@@ -3,6 +3,7 @@ from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
 from app.core.config import settings
+from app.core.supabase_client import get_service_client
 
 _bearer = HTTPBearer(auto_error=False)
 _jwks_client = jwt.PyJWKClient(settings.supabase_jwks_url)
@@ -37,8 +38,28 @@ def get_current_user(
     if not user_id:
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Token missing subject")
 
-    app_meta = payload.get("app_metadata") or {}
-    user_meta = payload.get("user_metadata") or {}
-    role = app_meta.get("role") or user_meta.get("role") or "student"
+    # The token also carries a role, but it comes from user_metadata, which
+    # the account holder can rewrite at will via supabase.auth.updateUser().
+    # profiles.role is written once by the handle_new_user trigger and RLS
+    # forbids changing it afterwards, so that is the copy worth trusting.
+    # It costs one lookup per request; the alternative is an authorization
+    # input the caller controls.
+    client = get_service_client()
+    response = (
+        client.table("profiles")
+        .select("role")
+        .eq("id", user_id)
+        .maybe_single()
+        .execute()
+    )
+    # This supabase-py returns None outright when nothing matches, so the
+    # response itself has to be checked before .data.
+    profile = response.data if response else None
+    if not profile:
+        raise HTTPException(
+            status.HTTP_401_UNAUTHORIZED, "No profile for this account"
+        )
 
-    return CurrentUser(id=user_id, role=role, email=payload.get("email"))
+    return CurrentUser(
+        id=user_id, role=profile["role"], email=payload.get("email")
+    )

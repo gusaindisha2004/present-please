@@ -4,6 +4,7 @@ from app.core.auth import CurrentUser, get_current_user
 from app.core.config import settings
 from app.core.image_utils import load_image_as_array
 from app.core.supabase_client import get_service_client
+from app.core.uploads import MAX_AUDIO_BYTES, MAX_IMAGE_BYTES, read_upload
 from app.pipelines.face_pipeline import get_face_embeddings, get_trained_model_for_students, match_encodings
 from app.pipelines.voice_pipeline import VoicePipelineError, process_bulk_audio
 
@@ -75,7 +76,7 @@ async def scan_face_attendance(
     unmatched_faces = 0
 
     for photo_index, upload in enumerate(files):
-        data = await upload.read()
+        data = await read_upload(upload, MAX_IMAGE_BYTES)
         image_np = load_image_as_array(data)
         encodings = get_face_embeddings(image_np)
         matches = match_encodings(encodings, model_data, settings.face_match_threshold)
@@ -134,7 +135,7 @@ async def scan_voice_attendance(
         )
         candidates = {row["student_id"]: row["embedding"] for row in voice_rows}
 
-    data = await file.read()
+    data = await read_upload(file, MAX_AUDIO_BYTES)
     try:
         identified, unmatched_segments = process_bulk_audio(
             data, candidates, settings.voice_match_threshold

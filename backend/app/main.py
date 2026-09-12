@@ -1,8 +1,9 @@
 import logging
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 
 from app.core.config import settings
 from app.pipelines.face_pipeline import get_trained_model, load_dlib_models
@@ -34,6 +35,25 @@ async def lifespan(_app: FastAPI):
 
 
 app = FastAPI(title="Present Please! API", lifespan=lifespan)
+
+# A whole face scan is up to MAX_PHOTOS_PER_SCAN images, so this has to be
+# roomy enough for that; the per-file caps in core/uploads.py are what
+# actually keep a single upload honest. This is the outer sanity bound:
+# multipart parsing spools the entire body to disk *before* a handler runs,
+# so without it a 2 GB POST would be written out before anything could
+# object. A reverse proxy or platform body limit is the real backstop.
+MAX_REQUEST_BYTES = 128 * 1024 * 1024
+
+
+@app.middleware("http")
+async def limit_request_size(request: Request, call_next):
+    declared = request.headers.get("content-length")
+    if declared and declared.isdigit() and int(declared) > MAX_REQUEST_BYTES:
+        return JSONResponse(
+            {"detail": "That upload is too large"},
+            status_code=413,
+        )
+    return await call_next(request)
 
 app.add_middleware(
     CORSMiddleware,

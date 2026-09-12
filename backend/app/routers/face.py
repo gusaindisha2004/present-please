@@ -5,6 +5,7 @@ from fastapi import APIRouter, Depends, File, HTTPException, UploadFile
 from app.core.auth import CurrentUser, get_current_user
 from app.core.image_utils import load_image_as_array
 from app.core.supabase_client import get_service_client
+from app.core.uploads import MAX_IMAGE_BYTES, read_upload
 from app.pipelines.face_pipeline import get_face_embeddings, predict_attendance, train_classifier
 
 router = APIRouter(prefix="/api/face", tags=["face"])
@@ -62,7 +63,7 @@ async def enroll_face(
     skipped: list[dict] = []
 
     for upload in files:
-        data = await upload.read()
+        data = await read_upload(upload, MAX_IMAGE_BYTES)
         image_np = load_image_as_array(data)
         encodings = get_face_embeddings(image_np)
 
@@ -127,7 +128,7 @@ async def identify_face(file: UploadFile = File(...)):
     On a match it mints a Supabase magic-link token server-side (never
     emailed) so the frontend can exchange it for a real session via
     supabase.auth.verifyOtp({ token_hash, type: 'magiclink' })."""
-    data = await file.read()
+    data = await read_upload(file, MAX_IMAGE_BYTES)
     image_np = load_image_as_array(data)
 
     detected, _all_students, num_faces = predict_attendance(image_np)

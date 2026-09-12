@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends, File, HTTPException, UploadFile
 
 from app.core.auth import CurrentUser, get_current_user
 from app.core.supabase_client import get_service_client
+from app.core.uploads import MAX_AUDIO_BYTES, read_upload
 from app.pipelines.voice_pipeline import VoicePipelineError, get_voice_embedding
 
 router = APIRouter(prefix="/api/voice", tags=["voice"])
@@ -34,7 +35,7 @@ async def enroll_voice(
 ):
     _require_student(user)
 
-    data = await file.read()
+    data = await read_upload(file, MAX_AUDIO_BYTES)
     try:
         embedding = get_voice_embedding(data)
     except VoicePipelineError as e:
