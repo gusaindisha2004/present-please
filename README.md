@@ -10,6 +10,24 @@ A ground-up React + FastAPI + Supabase rewrite of an earlier Streamlit
 prototype ("SnapClass") — same recognition pipelines, a proper web stack
 around them.
 
+## Screenshots
+
+<!-- The four PNGs below don't exist yet. Capture them (see
+     docs/screenshots/README.md for exactly what and at what size), drop
+     them in docs/screenshots/, then delete this comment's opening line
+     and the closing one to make the table render.
+
+|  |  |
+| --- | --- |
+| ![Landing page](docs/screenshots/landing.png) | ![Teacher timetable](docs/screenshots/teacher-timetable.png) |
+| *Landing page* | *A teacher's week — branch, year, room and derived status per class* |
+| ![Attendance review](docs/screenshots/attendance-review.png) | ![Student dashboard](docs/screenshots/student-dashboard.png) |
+| *AI drafts the roster; the teacher confirms before anything is saved* | *A student's own attendance against the 75% requirement* |
+
+-->
+
+_Screenshots to come._
+
 ## What it does
 
 **Teachers** create subjects, share a join code, and take attendance two
@@ -83,8 +101,9 @@ frontend exchanges it for a real session via
    `VITE_SUPABASE_PUBLISHABLE_KEY` (the anon/publishable key), and
    `VITE_API_URL` (the backend's URL) in `frontend/.env.local`.
 
-Both `.env` files are gitignored — copy the checked-in `.env.example`
-next to each and fill in your own Supabase project's values.
+Both env files are gitignored — copy the checked-in templates
+(`backend/.env.example` and `frontend/.env.local.example`) next to each
+and fill in your own Supabase project's values.
 
 ## Deploying
 
@@ -132,16 +151,30 @@ isn't affected either way, but is worth testing after deploy regardless.
 
 ## Build status
 
-Phases 0–9 are complete: auth, subjects & enrollment, face + voice AI
-enrollment and face login, face attendance (scan → review → save), voice
-attendance, teacher and student attendance history with CSV export,
-polish, and documentation. See `git log` for the phase-by-phase commit
-history.
+Feature-complete for a single teacher and their students:
 
-Deploy config exists (above) but the app has only actually been
-deployed if you've since run through those steps yourself.
+- **Auth** — email/password signup with a role chosen at signup, plus
+  face sign-in for students.
+- **Subjects & enrolment** — join codes, a shareable link and QR, and
+  students managing their own enrolments.
+- **Timetable** — weekly recurring slots per subject, tagged with branch
+  (CSE/ECE/AIML/AIDS/IIOT) and year, materialised 12 weeks ahead into
+  dated classes a teacher can edit, cancel or remove.
+- **Attendance** — face or voice, always as a *draft* the teacher edits
+  and confirms. It can be taken from the moment a class starts until 24
+  hours after it ends.
+- **Reporting** — per-subject history, per-student percentages against a
+  75% requirement, and CSV export of any session.
 
-Not yet built: cross-subject/aggregate reports.
+Class status (upcoming / in progress / attendance pending / completed /
+cancelled) is derived at read time from the clock and from whether a
+session exists, so it can never drift out of sync with reality.
+
+Deploy config for Render and Vercel is committed (see above), but the
+app has not actually been deployed yet.
+
+Not yet built: cross-subject aggregate reports, and an "extend schedule"
+action for when the 12-week horizon runs out.
 
 ## Known limitations
 
@@ -152,3 +185,18 @@ Not yet built: cross-subject/aggregate reports.
   cleanup step for now.
 - The frontend's production bundle exceeds Vite's default 500KB
   chunk-size warning; no code-splitting has been introduced yet.
+- There are no automated tests yet; everything has been verified by hand
+  against a live Supabase project.
+
+Known by design, and worth naming rather than leaving to be discovered:
+
+- **Face sign-in has no liveness check.** A photo of a photo will pass.
+  Real deployments need presentation-attack detection.
+- **Anyone can sign up as a teacher** — the role is chosen on the signup
+  form. Fine for a demo; a real deployment would issue teacher accounts
+  out of band. (Changing your role afterwards *is* blocked, by RLS.)
+- **The join code is enforced in the UI, not in the database.** The
+  enrolment policy only requires that you enrol yourself, so someone who
+  already knew a subject's UUID could enrol without the code. Closing it
+  properly means moving enrolment behind a `security definer` function.
+- **No rate limiting** on the public face-login endpoint.
