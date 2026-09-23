@@ -5,7 +5,12 @@ services:
     rootDir: backend
     plan: starter
     healthCheckPath: /health
-    buildCommand: "pip install -r requirements.txt && pip install --no-deps resemblyzer==0.1.4"
+    # torch first, from PyTorch's CPU index. Plain `pip install torch` on
+    # Linux resolves to the CUDA build and drags in several GB of nvidia-*
+    # packages for a GPU this box doesn't have — enough to blow the build's
+    # disk and time budget. Installing it up front means the requirements.txt
+    # pass below finds torch==2.13.0 already satisfied and leaves it alone.
+    buildCommand: "pip install torch==2.13.0 --index-url https://download.pytorch.org/whl/cpu && pip install -r requirements.txt && pip install --no-deps resemblyzer==0.1.4"
     startCommand: "uvicorn app.main:app --host 0.0.0.0 --port $PORT"
     envVars:
       - key: PYTHON_VERSION

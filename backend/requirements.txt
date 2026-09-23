@@ -29,6 +29,9 @@ setuptools<70.0.0
 
 # Voice recognition — unchanged from the original pipeline
 librosa==0.10.2.post1
+# Windows pip resolves this to the CPU build; Linux resolves it to the CUDA
+# one. Deployment installs it from PyTorch's CPU index first so the Linux
+# build doesn't pull gigabytes of nvidia-* packages — see backend/render.yaml.
 torch==2.13.0
 # webrtcvad's C extension has no Windows wheel on PyPI and needs MSVC build
 # tools to compile from source; webrtcvad-wheels ships prebuilt wheels under
