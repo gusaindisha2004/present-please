@@ -8,6 +8,33 @@ is saved.
 
 `React` `TypeScript` `FastAPI` `Python` `Supabase` `PostgreSQL` `Computer Vision` `Voice Recognition`
 
+## Project overview
+
+Attendance in most institutions is spread across disconnected places: the
+timetable lives in one document, the roll call happens on paper or in a
+spreadsheet, and the running percentage a student actually cares about is
+calculated separately, if at all. Nothing links "this class was supposed to
+happen" to "this is who attended it".
+
+Present Please! models that chain explicitly, end to end:
+
+```text
+Schedule a class
+   -> Conduct the class
+   -> Capture attendance by face or voice
+   -> AI produces a draft roster
+   -> Teacher reviews and edits
+   -> Teacher confirms, and only then is it saved
+   -> Student sees their updated attendance
+   -> Insights against the attendance requirement
+```
+
+Because every attendance record traces back to a specific scheduled class,
+the system can tell the difference between a class that was cancelled, one
+that has not happened yet, one whose attendance is still outstanding, and
+one that was actually conducted. That distinction is what makes the
+percentages trustworthy.
+
 ## Screenshots
 
 ![Landing page](docs/screenshots/landing.png)
@@ -40,33 +67,6 @@ is saved.
 | --- | --- | --- |
 | ![Teacher sign in](docs/screenshots/login-teacher.png) | ![Student sign in](docs/screenshots/login-student.png) | ![Sign up](docs/screenshots/signup.png) |
 | Teacher sign in | Student sign in, including the face option | Account creation with role selection |
-
-## Project overview
-
-Attendance in most institutions is spread across disconnected places: the
-timetable lives in one document, the roll call happens on paper or in a
-spreadsheet, and the running percentage a student actually cares about is
-calculated separately, if at all. Nothing links "this class was supposed to
-happen" to "this is who attended it".
-
-Present Please! models that chain explicitly, end to end:
-
-```text
-Schedule a class
-   -> Conduct the class
-   -> Capture attendance by face or voice
-   -> AI produces a draft roster
-   -> Teacher reviews and edits
-   -> Teacher confirms, and only then is it saved
-   -> Student sees their updated attendance
-   -> Insights against the attendance requirement
-```
-
-Because every attendance record traces back to a specific scheduled class,
-the system can tell the difference between a class that was cancelled, one
-that has not happened yet, one whose attendance is still outstanding, and
-one that was actually conducted. That distinction is what makes the
-percentages trustworthy.
 
 ## Key features
 
