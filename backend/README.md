@@ -12,14 +12,13 @@ python -m venv venv
 ./venv/Scripts/pip install --no-deps resemblyzer==0.1.4
 ```
 
-> **Note for this machine specifically:** the project folder lives deep
-> inside OneDrive (`...\Claude Projects\Present Please!\backend`). Combined
-> with `torch`'s deeply-nested license files, a venv created *inside* the
-> project trips Windows' 260-character path limit. The working venv for
-> this checkout lives at `C:\venvs\present-please-backend` instead — same
-> `requirements.txt`, just a shorter path. If you clone this repo somewhere
-> with a shorter path (or enable Windows long-path support), a normal
-> in-project `venv/` works fine.
+> **Note for Windows:** `torch` ships deeply-nested license files, so if
+> the project itself sits under a long path (a synced OneDrive folder,
+> for example), a venv created *inside* the project can trip Windows'
+> 260-character path limit during install. Creating the venv somewhere
+> short instead, such as `C:envs\present-please-backend`, avoids it:
+> same `requirements.txt`, just a shorter path. Enabling Windows
+> long-path support works too, as does cloning to a shorter directory.
 
 `resemblyzer` is installed with `--no-deps` on purpose: its declared
 dependency is plain `webrtcvad`, which has no prebuilt Windows wheel and
