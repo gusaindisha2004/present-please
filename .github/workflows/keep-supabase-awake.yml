@@ -1,0 +1,44 @@
+name: Keep Supabase awake
+
+# Supabase's free tier pauses a project after roughly a week without
+# activity, which would leave the live demo pointing at a dead database.
+# One cheap authenticated read every few days is enough to keep it active.
+
+on:
+  schedule:
+    # 06:00 UTC on Monday and Thursday
+    - cron: "0 6 * * 1,4"
+  workflow_dispatch:
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Query the database
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_PUBLISHABLE_KEY: ${{ secrets.SUPABASE_PUBLISHABLE_KEY }}
+        run: |
+          if [ -z "$SUPABASE_URL" ] || [ -z "$SUPABASE_PUBLISHABLE_KEY" ]; then
+            echo "Missing SUPABASE_URL or SUPABASE_PUBLISHABLE_KEY repository secret."
+            exit 1
+          fi
+
+          # Reads nothing sensitive: row level security applies to the
+          # publishable key exactly as it does in the browser, and an
+          # unauthenticated caller can see no rows at all. The point is the
+          # request itself, not the response body.
+          code=$(curl -s -o /dev/null -w "%{http_code}" \
+            -H "apikey: $SUPABASE_PUBLISHABLE_KEY" \
+            -H "Authorization: Bearer $SUPABASE_PUBLISHABLE_KEY" \
+            "$SUPABASE_URL/rest/v1/subjects?select=id&limit=1")
+
+          echo "Supabase responded with HTTP $code"
+
+          # 2xx means awake; 401/403 still proves the project is running and
+          # reachable, which is all this job is for.
+          case "$code" in
+            2*|401|403) echo "Project is awake." ;;
+            000) echo "Could not reach the project (DNS or network failure)."; exit 1 ;;
+            *)   echo "Unexpected status $code."; exit 1 ;;
+          esac
