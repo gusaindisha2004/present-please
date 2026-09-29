@@ -8,6 +8,13 @@ is saved.
 
 `React` `TypeScript` `FastAPI` `Python` `Supabase` `PostgreSQL` `Computer Vision` `Voice Recognition`
 
+> **No hosted demo, by constraint rather than oversight.** The recognition
+> service loads dlib and PyTorch models into memory and needs a persistent
+> process holding roughly a gigabyte, which no free hosting tier provides,
+> and which serverless platforms cannot keep warm between requests. The
+> screenshots below cover every screen in the application, and
+> [Running it locally](#running-it-locally) gets it working in a few minutes.
+
 ## Project overview
 
 Attendance in most institutions is spread across disconnected places: the
@@ -293,23 +300,34 @@ present-please/
    [`supabase/README.md`](supabase/README.md) for the order and for the
    storage bucket setup.
 
-2. **Run the backend.** See [`backend/README.md`](backend/README.md) for
-   the full setup, including the two dependencies that need special
-   handling on Windows. It needs `SUPABASE_URL`, `SUPABASE_SECRET_KEY`
-   (the `service_role` key) and `SUPABASE_JWKS_URL` in `backend/.env`.
+2. **Run the backend** on port 8000. It needs `SUPABASE_URL`,
+   `SUPABASE_SECRET_KEY` (the `service_role` key) and `SUPABASE_JWKS_URL`
+   in `backend/.env`. See [`backend/README.md`](backend/README.md) for the
+   full setup, including two dependencies that need special handling on
+   Windows.
 
    ```bash
-   uvicorn app.main:app --port 8000
+   cd backend
+   python -m venv venv
+   ./venv/Scripts/pip install -r requirements.txt
+   ./venv/Scripts/pip install --no-deps resemblyzer==0.1.4
+   ./venv/Scripts/python -m uvicorn app.main:app --port 8000
    ```
 
-3. **Run the frontend.** See [`frontend/README.md`](frontend/README.md).
-   It needs `VITE_SUPABASE_URL`, `VITE_SUPABASE_PUBLISHABLE_KEY` and
-   `VITE_API_URL` in `frontend/.env.local`.
+   Those are Windows virtualenv paths. On macOS or Linux the equivalent is
+   `venv/bin/` in place of `venv/Scripts/`.
+
+3. **Run the frontend** on port 5173, in a second terminal. It needs
+   `VITE_SUPABASE_URL`, `VITE_SUPABASE_PUBLISHABLE_KEY` and `VITE_API_URL`
+   in `frontend/.env.local`. See [`frontend/README.md`](frontend/README.md).
 
    ```bash
+   cd frontend
    npm install
    npm run dev
    ```
+
+   Then open `http://localhost:5173`.
 
 Both env files are gitignored. Copy the checked in templates
 (`backend/.env.example` and `frontend/.env.local.example`) and fill in your
@@ -318,14 +336,15 @@ own values.
 Note that the backend loads dlib and PyTorch models at startup, so the first
 boot takes roughly 20 seconds.
 
-## Deployment
+## Deployment readiness
 
-The repository includes configuration for both platforms:
-[`backend/render.yaml`](backend/render.yaml) and
-[`frontend/vercel.json`](frontend/vercel.json), which adds the SPA rewrite
-React Router needs.
+The project is not currently hosted, but it is configured to be. The
+repository carries [`backend/render.yaml`](backend/render.yaml) and
+[`frontend/vercel.json`](frontend/vercel.json), the latter adding the SPA
+rewrite React Router needs so that refreshing on a nested route does not
+return a 404.
 
-Two things to get right:
+Two details the configuration already accounts for:
 
 - On Render, set `FRONTEND_ORIGIN` to the deployed frontend URL exactly,
   with no trailing slash. The CORS middleware allows exactly one origin, so
