@@ -1,15 +1,14 @@
 # Database setup
 
 Run these in the Supabase SQL Editor (Project → SQL Editor → New query),
-in order, against your project (`tbazxjxzyhyeuaxeftsk`).
+in order, against your own project.
 
-1. **`000_drop_old_schema.sql`** — drops the old `teachers` / `students` /
-   `subjects` / `subject_students` / `attendance_logs` tables from the
-   original Streamlit app.
-   **This is destructive.** The new schema's `subjects` table has the same
-   name as the old one, so this step isn't really optional — it has to run
-   before step 2 or `schema.sql` will fail with "relation already exists".
-   If you have real data in the old tables you want to keep, export it
+1. **`000_drop_old_schema.sql`** — only needed if the project already
+   contains `teachers` / `students` / `subjects` / `subject_students` /
+   `attendance_logs` tables. **This is destructive.** On a fresh Supabase
+   project you can skip it. Where those tables do exist, it has to run
+   before step 2, since `subjects` collides by name and `schema.sql` would
+   fail with "relation already exists". Export anything you want to keep
    first (Table Editor → export CSV).
 
 2. **`schema.sql`** — creates the new tables (`profiles`, `subjects`,

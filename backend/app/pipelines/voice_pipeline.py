@@ -1,16 +1,18 @@
 """
-Voice recognition pipeline — ported from the original Streamlit app's
-src/pipelines/voice_pipeline.py with as few changes as possible:
+Voice recognition pipeline.
 
-  - encoder: resemblyzer.VoiceEncoder, unchanged.
-  - segmentation: librosa.effects.split(top_db=30), 0.5s minimum segment,
-    unchanged.
-  - match decision: cosine similarity (np.dot on unit embeddings) against
-    a threshold, unchanged.
+  - encoder:       Resemblyzer VoiceEncoder, one 256 dimensional speaker
+                   embedding per utterance
+  - segmentation:  librosa.effects.split(top_db=30); segments shorter than
+                   0.5s are discarded as too brief to identify anyone
+  - decision:      cosine similarity against the enrolled speakers,
+                   accepted when >= threshold
 
-What changed: @st.cache_resource -> a module-level singleton, and
-st.error(...) -> raised exceptions (the API layer turns these into HTTP
-responses instead of writing to a Streamlit UI).
+The encoder returns unit normalised embeddings, so a plain dot product is
+already the cosine similarity and no separate normalisation step is needed.
+
+The encoder loads once into a module level singleton behind a lock, since
+constructing it reads model weights from disk.
 """
 
 import io

@@ -1,18 +1,22 @@
 """
-Face recognition pipeline — ported from the original Streamlit app's
-src/pipelines/face_pipeline.py with as few changes as possible:
+Face recognition pipeline.
 
-  - detector / shape predictor / face descriptor: dlib, unchanged.
-  - classifier: SVC(kernel='linear'), unchanged.
-  - match decision: np.linalg.norm(...) <= threshold, unchanged.
+  - detection:  dlib HOG frontal face detector
+  - landmarks:  dlib 68 point shape predictor
+  - embedding:  dlib ResNet face descriptor, 128 dimensions per face
+  - candidate:  linear SVC fitted over the enrolled embeddings
+  - decision:   Euclidean distance to the closest stored embedding of the
+                predicted student, accepted when <= threshold
 
-What changed and why:
-  - @st.cache_resource -> plain module-level singletons (no Streamlit).
-  - one embedding per student -> the classifier now trains on every row in
-    student_faces, so multi-photo enrollment actually improves accuracy.
-  - train_classifier() only clears the classifier cache now, not the dlib
-    models (the original called st.cache_resource.clear(), which nuked
-    everything on every signup).
+The SVC only narrows the candidate. The distance check is what actually
+accepts or rejects, so a confident but wrong classification still fails if
+the face is not close enough to anything that student enrolled. That
+ordering matters: a classifier asked to choose among N students will always
+name one of them, however unfamiliar the face.
+
+dlib's models load once into module level singletons behind a lock. The
+classifier is cached separately, so enrolling a new face invalidates only
+the classifier and not the far slower dlib model load.
 """
 
 import threading
